@@ -1,13 +1,16 @@
 package tiles;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.awt.Stroke;
 
 import main.GamePanel;
+
 
 public class Tile {
 
@@ -162,6 +165,10 @@ public class Tile {
         g.setColor(bgColor);
         g.fillRoundRect(0, 0, TILE_WIDTH, TILE_HEIGHT, ARC_WIDTH, ARC_HEIGHT);
 
+        Stroke stroke = new BasicStroke(8f);
+        g.setColor(new Color(0x858267));
+        g.setStroke(stroke);
+        g.drawRoundRect(0, 0, TILE_WIDTH, TILE_HEIGHT, ARC_WIDTH * 2, ARC_HEIGHT * 2);
         g.setColor(txtColor);
         
         if (number <= 64) {
@@ -202,13 +209,13 @@ public class Tile {
 
         else if (isCombiningAnimation) {
             AffineTransform transform = new AffineTransform();
-            transform.translate(TILE_WIDTH / 2 - combineScale * TILE_WIDTH / 2, TILE_HEIGHT / 2 - combineScale * TILE_HEIGHT / 2);
             transform.scale(combineScale, combineScale);
 
             Graphics2D g2d = (Graphics2D) combineImage.getGraphics();
             g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
             
             g2d.drawImage(tileImage, transform, null);
+
             combineScale -= 0.05;
             g2d.dispose();
 
@@ -224,8 +231,8 @@ public class Tile {
         }
 
         else if (isCombiningAnimation) {
-            g.drawImage(combineImage, (int)(x + TILE_WIDTH / 2 - combineScale * TILE_WIDTH / 2),
-                                        (int)(y + TILE_HEIGHT / 2 - combineScale * TILE_HEIGHT / 2), null);
+            g.drawImage(combineImage, (int)(x - (TILE_WIDTH * combineScale - TILE_WIDTH) / 2),
+                                        (int) (y - (TILE_HEIGHT * combineScale - TILE_HEIGHT) / 2), null);
         }
 
         else {

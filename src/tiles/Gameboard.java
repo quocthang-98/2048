@@ -17,7 +17,7 @@ public class Gameboard {
     private Tile[][] board;
 
     private BufferedImage gameBoardImage;
-    private BufferedImage finalBoardImage; 
+    private BufferedImage finalBoardImage;
 
     private int boardPosX;
     private int boardPosY;
@@ -26,6 +26,9 @@ public class Gameboard {
 
     public static int BOARD_WIDTH = (COLS + 1) * SPACING + COLS * Tile.TILE_WIDTH;
     public static int BOARD_HEIGHT = (ROWS + 1) * SPACING + ROWS * Tile.TILE_HEIGHT;
+
+    public static Color boardBGColor = new Color (0xbdba8f);
+    public static Color slotBGColor = new Color(0xd4d1ab);
 
     private boolean won = false;
     private boolean lost = false;
@@ -84,12 +87,12 @@ public class Gameboard {
         g.setColor(GamePanel.bgColor);
         g.fillRect(0, 0, BOARD_WIDTH, BOARD_HEIGHT);
 
-        // draw the board's baclground
-        g.setColor(Color.DARK_GRAY);
+        // draw the board's background
+        g.setColor(boardBGColor);
         g.fillRoundRect(0, 0, BOARD_WIDTH, BOARD_HEIGHT, 20, 20);
 
         // draw the board's slots
-        g.setColor(Color.LIGHT_GRAY);
+        g.setColor(slotBGColor);
         for (int i = 0; i < ROWS; i++) {
             for (int j = 0; j < COLS; j++) {
                 int drawX = SPACING + (SPACING + Tile.TILE_WIDTH) * j;
@@ -117,6 +120,7 @@ public class Gameboard {
             }
         }
     }
+
 
     private void resetPosition(Tile current, int row, int col) {
 
@@ -147,6 +151,7 @@ public class Gameboard {
         if (distY > 0) {
             current.setY(current.getY() - Tile.TILE_SPEED);
         }
+
     }
 
     public void moveTiles(Direction dir) {

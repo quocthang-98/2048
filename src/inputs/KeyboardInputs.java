@@ -3,6 +3,7 @@ package inputs;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
+import main.GamePanel;
 import tiles.Gameboard;
 
 public class KeyboardInputs implements KeyListener {
@@ -12,7 +13,10 @@ public class KeyboardInputs implements KeyListener {
     private boolean[] keyState = new boolean[256];
     private boolean[] prevState = new boolean[256];
 
-    public KeyboardInputs () {
+    private GamePanel gPanel;
+
+    public KeyboardInputs (GamePanel gp) {
+        gPanel = gp;
         keyInits();
     }
 
@@ -49,15 +53,19 @@ public class KeyboardInputs implements KeyListener {
     public void eventUpdate(Gameboard gameboard) {
 
         if (typed(KeyEvent.VK_W) || typed(KeyEvent.VK_UP)) {
+            gPanel.setGoingUp(true);
             gameboard.moveTiles(Direction.UP);
         }
         if (typed(KeyEvent.VK_S) || typed(KeyEvent.VK_DOWN)) {
+            gPanel.setGoingDown(true);
             gameboard.moveTiles(Direction.DOWN);
         }
         if (typed(KeyEvent.VK_A) || typed(KeyEvent.VK_LEFT)) {
+            gPanel.setGoingLeft(true);
             gameboard.moveTiles(Direction.LEFT);
         }
         if (typed(KeyEvent.VK_D) || typed(KeyEvent.VK_RIGHT)) {
+            gPanel.setGoingRight(true);
             gameboard.moveTiles(Direction.RIGHT);
         }
     }
