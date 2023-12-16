@@ -121,7 +121,9 @@ public class Gameboard {
         }
     }
 
-
+    // calculate the postion of the tile.
+    // This is for the animation purpose.
+    // (a tile can slide frame-by-frame until it reaches its final destination)
     private void resetPosition(Tile current, int row, int col) {
 
         if (current == null) return;
@@ -154,23 +156,27 @@ public class Gameboard {
 
     }
 
+    // this is used to move the tiles, based on the player's direction instruction
     public void moveTiles(Direction dir) {
 
+        // this define if at least 1 cell has moved 
+        // (if no single cell moved, that means the player has lost)
         boolean canMove = false;
 
         int xDir = 0;
         int yDir = 0;
 
         if (dir == Direction.LEFT) {
-            xDir = -1;
+            xDir = -1;  // move one cell to the left
 
             for (int row = 0; row < ROWS; row++) {
                 for (int col = 0; col < COLS; col++) {
-                    if (!canMove) {
-                        canMove = move(row, col, xDir, yDir, dir);
+                    if (!canMove) {                                 // if no cell has moved
+                        canMove = move(row, col, xDir, yDir, dir);  // try moving this cell. If this cell can move to somewhere else, then canMove = true
                     }
-                    else {
-                        move(row, col, xDir, yDir, dir);
+                    else {                                          // if canMove has been set to true by other moved previous cells
+                        move(row, col, xDir, yDir, dir);            // just simply move this cell
+                                                                    // this moving mechanic is the same for other 3 directions
                     }
                 }
             }
@@ -221,7 +227,9 @@ public class Gameboard {
             }
         }
 
-        else {}
+        else {
+            canMove = false; // this case rarely (or no) happens
+        }
 
         for (int row = 0; row < ROWS; row++) {
             for (int col = 0; col < COLS; col++) {
@@ -229,13 +237,13 @@ public class Gameboard {
                 if (current == null) {
                     continue;
                 }
-                current.setCombinable(true);
+                current.setCombinable(true);           // set the tile with the new positions to be combinable
             }
         }
 
-        if (canMove) {
-            spawnRandomTile();
-            checkLoss();
+        if (canMove) {          // if at least 1 tile has moved
+            spawnRandomTile();  // spawn another tile
+            checkLoss();        // check if the player has lost the game
             
             // if lost here
             if (lost) {
@@ -244,17 +252,19 @@ public class Gameboard {
         }
     }
 
+    // check if the player has lost the game
     public void checkLoss() {
         for (int row = 0; row < ROWS; row++) {
             for (int col = 0; col < COLS; col++) {
-                if (board[row][col] == null) return;
-                if (checkSurrounding(row, col, board[row][col])) {
-                    return;
+                if (board[row][col] == null)                        // if there is still an empty cell,
+                    return;                                         // the game continues
+                if (checkSurrounding(row, col, board[row][col])) {  // if there is still an empty slot next to this number tile,
+                    return;                                         // the game continues
                 }
             }
         }
 
-        lost = true;
+        lost = true;                                                // if reaches this point, the game ends
     }
 
     public boolean checkSurrounding (int row, int col, Tile tile) {
@@ -281,10 +291,11 @@ public class Gameboard {
         return false;
     }
 
+    // move a tile
     public boolean move (int row, int col, int horDir, int verDir, Direction dir) {
         boolean canMove = false;
 
-        Tile current = board[row][col];
+        Tile current = board[row][col];     // fetch the cell data
         if (current == null) {
             return false;
         }
@@ -293,16 +304,16 @@ public class Gameboard {
         int newRow = row;
         int newCol = col;
 
-        while (move) {
-            newCol += horDir;
-            newRow += verDir;
-            if (isOutOfBound(dir, newRow, newCol))
-                break;
-            if (board[newRow][newCol] == null) {
-                board[newRow][newCol] = current;
-                board[newRow - verDir][newCol - horDir] = null;
-                board[newRow][newCol].setNewPos(new Destination(newRow, newCol));
-                canMove = true;
+        while (move) {                                  // start moving
+            newCol += horDir;                           // move as directed
+            newRow += verDir;                           // move as directed
+            if (isOutOfBound(dir, newRow, newCol))      // if the cell try to go out of bound,
+                break;                                  // don't let it do it
+            if (board[newRow][newCol] == null) {                                            // if the next cell has no other cell (empty)
+                board[newRow][newCol] = current;                                            // set that empty slot to be this number
+                board[newRow - verDir][newCol - horDir] = null;                             // the previous cell will become empty
+                board[newRow][newCol].setNewPos(new Destination(newRow, newCol));           // this cell has new address
+                canMove = true;                                                             // return true for the moveDir() method (a tile has moved)
             }
             else if ((board[newRow][newCol].getValue() == current.getValue()) && (board[newRow][newCol].isCombinable())) {
                 board[newRow][newCol].setCombinable(false);
@@ -320,6 +331,8 @@ public class Gameboard {
         return canMove;
     }
 
+    // this isOutOfBound receive the NEXT row and col.
+    // if the cell want to go outside the board's area, this method will return false.
     public boolean isOutOfBound(Direction dir, int row, int col) {
         if (dir == Direction.LEFT) {
             return col < 0;
@@ -336,23 +349,25 @@ public class Gameboard {
         return false;
     }
 
+    // render the board frame-by-frame
     public void renderBoard(Graphics2D g) {
-        Graphics2D g2 = (Graphics2D) finalBoardImage.getGraphics();
+        // g2 will work with the finalBoardImage image
+        Graphics2D g2 = (Graphics2D) finalBoardImage.getGraphics();    
 
-        // draw the board
-        g2.drawImage(gameBoardImage, 0, 0, null);
+        // draw the gameBoardImage on the finalBoardImage graphics
+        g2.drawImage(gameBoardImage, 0, 0, null);          
 
         // draw the number tiles
         for (int i = 0; i < ROWS; i++) {
             for (int j = 0; j < COLS; j++) {
                 Tile tile = board[i][j];
-                if (tile == null)
-                    continue;
-                tile.drawTile(g2);
+                if (tile == null)       // if this tile is empty,
+                    continue;           // skip
+                tile.drawTile(g2);      // else, draw
             }
         }
 
-        // render the board + tiles
+        // finally, render the finalBoardImage graphics
         g.drawImage(finalBoardImage, boardPosX, boardPosY, null);
 
         g.dispose();

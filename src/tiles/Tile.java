@@ -189,6 +189,7 @@ public class Tile {
         g.dispose();
     }
 
+    // decide the animation for the tile
     public void update() {
         if (isSpawningAnimation) {
             AffineTransform transform = new AffineTransform();
@@ -225,6 +226,7 @@ public class Tile {
         }
     }
 
+    // render the chosen animation from the update() method
     public void drawTile(Graphics2D g) {
         if (isSpawningAnimation) {
             g.drawImage(spawnImage, x, y, null); 

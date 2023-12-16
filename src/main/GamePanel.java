@@ -91,32 +91,38 @@ public class GamePanel extends JPanel {
     }
 
     public void update() {
-        keyboardInputs.eventUpdate(gBoard);
-        gBoard.update();
-        keyboardInputs.updatePrevKeys();
+        keyboardInputs.eventUpdate(gBoard); // read the input keys
+        gBoard.update();                    // update the state of the game (won? lost?)
+        keyboardInputs.updatePrevKeys();    // prevent the case of holding down keys
     }
 
     public void drawFrame() {
-        // background
+        // generate a Graphics2D object to work with the background
         Graphics2D g = (Graphics2D) image.getGraphics();
         g.setColor(bgColor);
         g.fillRect(0, 0, WIDTH, HEIGHT);
 
+        // draw an area for status (points, abilities, etc.)
         g.setColor(Color.CYAN);
         g.fillRect(0, 0, boardOffset, HEIGHT);
 
+        // update & render the current state of the arrow
         arrowUpdate();
         arrowRender(g);
 
+        // render the board frame-by-frame
         gBoard.renderBoard(g);
 
+        // finish drawing the background object
         g.dispose();
 
+        // now display that background
         Graphics2D g2 = (Graphics2D) getGraphics();
         g2.drawImage(image, 0, 0, null);
         g2.dispose();
     }
 
+    // these are for the animation of the arrows
     public void setGoingUp (boolean b) {
         goingUp = b;
     }
@@ -133,6 +139,7 @@ public class GamePanel extends JPanel {
         goingRight = b;
     }
 
+    // count the display time of each arrow key
     public void arrowUpdate () {
         if (goingUp) {
             displayArrowUpTime++;
@@ -164,6 +171,7 @@ public class GamePanel extends JPanel {
         }
     }
 
+    // render the arrows
     public void arrowRender (Graphics2D g) {
         if (goingUp) {
             g.drawImage(up_arrow_on, drawX + Gameboard.BOARD_WIDTH / 2 - 10, drawY - Gameboard.BOARD_HEIGHT / 2 + 120, null);
