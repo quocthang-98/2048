@@ -4,11 +4,13 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
 import main.GamePanel;
+import main.GameState;
+
 import tiles.Gameboard;
 
 public class KeyboardInputs implements KeyListener {
 
-    private int keysUsing = 4;
+    private int keysUsing = 11;
 
     private boolean[] keyState = new boolean[256];
     private boolean[] prevState = new boolean[256];
@@ -32,6 +34,13 @@ public class KeyboardInputs implements KeyListener {
             if (i == 1) prevState[KeyEvent.VK_D] = keyState[KeyEvent.VK_D];
             if (i == 2) prevState[KeyEvent.VK_W] = keyState[KeyEvent.VK_W];
             if (i == 3) prevState[KeyEvent.VK_S] = keyState[KeyEvent.VK_S];
+            if (i == 4) prevState[KeyEvent.VK_UP] = keyState[KeyEvent.VK_UP];
+            if (i == 5) prevState[KeyEvent.VK_DOWN] = keyState[KeyEvent.VK_DOWN];
+            if (i == 6) prevState[KeyEvent.VK_LEFT] = keyState[KeyEvent.VK_LEFT];
+            if (i == 7) prevState[KeyEvent.VK_RIGHT] = keyState[KeyEvent.VK_RIGHT];
+            if (i == 8) prevState[KeyEvent.VK_ESCAPE] = keyState[KeyEvent.VK_ESCAPE];
+            if (i == 9) prevState[KeyEvent.VK_Q] = keyState[KeyEvent.VK_Q];
+            if (i == 10) prevState[KeyEvent.VK_E] = keyState[KeyEvent.VK_E];
         }
     }
     
@@ -52,21 +61,62 @@ public class KeyboardInputs implements KeyListener {
 
     public void eventUpdate(Gameboard gameboard) {
 
-        if (typed(KeyEvent.VK_W) || typed(KeyEvent.VK_UP)) {
-            gPanel.setGoingUp(true);
-            gameboard.moveTiles(Direction.UP);
+        if (gPanel.gameState == GameState.PLAY) {
+            if (typed(KeyEvent.VK_W) || typed(KeyEvent.VK_UP)) {
+                gPanel.setGoingUp(true);
+                gameboard.moveTiles(Direction.UP);
+            }
+            if (typed(KeyEvent.VK_S) || typed(KeyEvent.VK_DOWN)) {
+                gPanel.setGoingDown(true);
+                gameboard.moveTiles(Direction.DOWN);
+            }
+            if (typed(KeyEvent.VK_A) || typed(KeyEvent.VK_LEFT)) {
+                gPanel.setGoingLeft(true);
+                gameboard.moveTiles(Direction.LEFT);
+            }
+            if (typed(KeyEvent.VK_D) || typed(KeyEvent.VK_RIGHT)) {
+                gPanel.setGoingRight(true);
+                gameboard.moveTiles(Direction.RIGHT);
+            }
+            if (typed(KeyEvent.VK_Q)) {
+                if (gameboard.ab1IsReady()) {
+
+                    gameboard.setAb1Status(false);
+                    gameboard.doubleAllTiles();
+
+                    gPanel.getAb1Thread().resetDuration();
+                    gPanel.getAb1Thread().startTimer();
+                }
+            }
+            if (typed(KeyEvent.VK_E)) {
+                if (gameboard.ab2IsReady()) {
+
+                    gameboard.setAb2Status(false);
+                    gameboard.removeAllTwoTiles();
+
+                    gPanel.getAb2Thread().resetDuration();
+                    gPanel.getAb2Thread().startTimer();
+                }
+            }
+
+            if (typed(KeyEvent.VK_ESCAPE)) {
+                gPanel.setGameState(GameState.PAUSE);
+
+                gPanel.getAb1Thread().pauseTimer();
+                gPanel.getAb2Thread().pauseTimer();
+            }
         }
-        if (typed(KeyEvent.VK_S) || typed(KeyEvent.VK_DOWN)) {
-            gPanel.setGoingDown(true);
-            gameboard.moveTiles(Direction.DOWN);
-        }
-        if (typed(KeyEvent.VK_A) || typed(KeyEvent.VK_LEFT)) {
-            gPanel.setGoingLeft(true);
-            gameboard.moveTiles(Direction.LEFT);
-        }
-        if (typed(KeyEvent.VK_D) || typed(KeyEvent.VK_RIGHT)) {
-            gPanel.setGoingRight(true);
-            gameboard.moveTiles(Direction.RIGHT);
+
+        else if (gPanel.gameState == GameState.PAUSE) {
+
+            
+            if (typed(KeyEvent.VK_ESCAPE)) {
+                gPanel.setGameState(GameState.PLAY);
+                
+                gPanel.getAb1Thread().startTimer();
+                gPanel.getAb2Thread().startTimer();
+
+            }
         }
     }
 

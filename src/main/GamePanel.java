@@ -4,6 +4,8 @@ import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
 import inputs.KeyboardInputs;
+import threads.Ability1Thread;
+import threads.Ability2Thread;
 import tiles.Gameboard;
 
 import java.awt.Color;
@@ -15,12 +17,14 @@ import java.io.FileInputStream;
 
 public class GamePanel extends JPanel {
 
-    private final int WIDTH = 1024;
-    private final int HEIGHT = 720;
+    public static final int WIDTH = 1024;
+    public static final int HEIGHT = 720;
 
     // font + bg color
     public static Font font = new Font("Helvetica Neue", Font.BOLD,28);
     public static Color bgColor = Color.WHITE;
+
+    public Dimension panelSize;
 
     KeyboardInputs keyboardInputs;
 
@@ -49,14 +53,18 @@ public class GamePanel extends JPanel {
     private int displayArrowDownTime = 0;
     private int displayArrowRightTime = 0;
 
+    private Ability1Thread ab1Thread;
+    private Ability2Thread ab2Thread;
+
     private int targetDisplayTime = 8;
 
-    private final int boardOffset = drawX / 2;
+    public GameState gameState;
     
     public GamePanel() {
 
-        Dimension panelSize = new Dimension(WIDTH, HEIGHT);
-
+        panelSize = new Dimension(WIDTH, HEIGHT);
+        
+        this.setLayout(null);
         this.setPreferredSize(panelSize);
         this.setBackground(Color.BLACK);
         this.setDoubleBuffered(true);
@@ -64,6 +72,9 @@ public class GamePanel extends JPanel {
 
         keyboardInputs = new KeyboardInputs(this);
         addKeyListener(keyboardInputs);
+
+        ab1Thread = new Ability1Thread(this);
+        ab2Thread = new Ability2Thread(this);
 
         try {
             up_arrow_on = ImageIO.read(new FileInputStream("resources/img/up_arrow_on.png"));
@@ -80,6 +91,16 @@ public class GamePanel extends JPanel {
         }
 
         gBoard = new Gameboard(drawX, drawY);
+        this.gameState = GameState.PLAY;
+
+    }
+
+    public Gameboard getGameboard () {
+        return gBoard;
+    }
+
+    public void setGameState (GameState s) {
+        this.gameState = s;
     }
 
     public int getDrawX() {
@@ -90,39 +111,68 @@ public class GamePanel extends JPanel {
         return drawY;
     }
 
+    public Ability1Thread getAb1Thread() {
+        return ab1Thread;
+    }
+
+    public Ability2Thread getAb2Thread() {
+        return ab2Thread;
+    }
+
     public void update() {
+        if (gameState == GameState.PLAY) {
+            gBoard.update();
+        }
         keyboardInputs.eventUpdate(gBoard); // read the input keys
-        gBoard.update();                    // update the state of the game (won? lost?)
         keyboardInputs.updatePrevKeys();    // prevent the case of holding down keys
     }
+
+    private boolean pauseScreendisplayed = false;     // if the Pause menu displayed, set this to true (avoid overlaying)
+
 
     public void drawFrame() {
         // generate a Graphics2D object to work with the background
         Graphics2D g = (Graphics2D) image.getGraphics();
-        g.setColor(bgColor);
-        g.fillRect(0, 0, WIDTH, HEIGHT);
 
-        // draw an area for status (points, abilities, etc.)
-        g.setColor(Color.CYAN);
-        g.fillRect(0, 0, boardOffset, HEIGHT);
+        if (gameState == GameState.PLAY) {
+            pauseScreendisplayed = false;
 
-        // update & render the current state of the arrow
-        arrowUpdate();
-        arrowRender(g);
+            g.setColor(bgColor);
+            g.fillRect(0, 0, WIDTH, HEIGHT);
 
-        // render the board frame-by-frame
-        gBoard.renderBoard(g);
+            g.drawImage(up_arrow_off, drawX + Gameboard.BOARD_WIDTH / 2 - 10, drawY - Gameboard.BOARD_HEIGHT / 2 + 120, null);
+            g.drawImage(down_arrow_off, drawX + Gameboard.BOARD_WIDTH / 2 - 10, drawY + Gameboard.BOARD_HEIGHT - Gameboard.BOARD_HEIGHT / 2 + 220, null);
+            g.drawImage(left_arrow_off, drawX - 60, drawY + Gameboard.BOARD_HEIGHT / 2 - 10, null);
+            g.drawImage(right_arrow_off, drawX + Gameboard.BOARD_WIDTH + 30, drawY + Gameboard.BOARD_HEIGHT / 2 - 10, null);
+
+            // update & render the current state of the arrow
+            arrowUpdate();
+            arrowRender(g);
+
+            // render the board frame-by-frame
+            gBoard.renderBoard(g);
+        }
+
+        if (gameState == GameState.PAUSE) {
+            // draw pause screen
+            if (pauseScreendisplayed == false) {
+                g.setColor(new Color(0, 0, 0, 127));
+                g.fillRect(0, (int)(drawY * 1.5), WIDTH, HEIGHT / 8);
+                pauseScreendisplayed = true;
+            }
+        }
 
         // finish drawing the background object
         g.dispose();
 
-        // now display that background
-        Graphics2D g2 = (Graphics2D) getGraphics();
+        Graphics2D g2 = (Graphics2D) this.getGraphics();
         g2.drawImage(image, 0, 0, null);
+
         g2.dispose();
+
     }
 
-    // these are for the animation of the arrows
+    // these are for the animations of the arrows
     public void setGoingUp (boolean b) {
         goingUp = b;
     }
@@ -175,33 +225,15 @@ public class GamePanel extends JPanel {
     public void arrowRender (Graphics2D g) {
         if (goingUp) {
             g.drawImage(up_arrow_on, drawX + Gameboard.BOARD_WIDTH / 2 - 10, drawY - Gameboard.BOARD_HEIGHT / 2 + 120, null);
-            g.drawImage(down_arrow_off, drawX + Gameboard.BOARD_WIDTH / 2 - 10, drawY + Gameboard.BOARD_HEIGHT - Gameboard.BOARD_HEIGHT / 2 + 220, null);
-            g.drawImage(left_arrow_off, drawX - 60, drawY + Gameboard.BOARD_HEIGHT / 2 - 10, null);
-            g.drawImage(right_arrow_off, drawX + Gameboard.BOARD_WIDTH + 30, drawY + Gameboard.BOARD_HEIGHT / 2 - 10, null);
         }
         else if (goingLeft) {
-            g.drawImage(up_arrow_off, drawX + Gameboard.BOARD_WIDTH / 2 - 10, drawY - Gameboard.BOARD_HEIGHT / 2 + 120, null);
-            g.drawImage(down_arrow_off, drawX + Gameboard.BOARD_WIDTH / 2 - 10, drawY + Gameboard.BOARD_HEIGHT - Gameboard.BOARD_HEIGHT / 2 + 220, null);
             g.drawImage(left_arrow_on, drawX - 60, drawY + Gameboard.BOARD_HEIGHT / 2 - 10, null);
-            g.drawImage(right_arrow_off, drawX + Gameboard.BOARD_WIDTH + 30, drawY + Gameboard.BOARD_HEIGHT / 2 - 10, null);
         }
         else if (goingRight) {
-            g.drawImage(up_arrow_off, drawX + Gameboard.BOARD_WIDTH / 2 - 10, drawY - Gameboard.BOARD_HEIGHT / 2 + 120, null);
-            g.drawImage(down_arrow_off, drawX + Gameboard.BOARD_WIDTH / 2 - 10, drawY + Gameboard.BOARD_HEIGHT - Gameboard.BOARD_HEIGHT / 2 + 220, null);
-            g.drawImage(left_arrow_off, drawX - 60, drawY + Gameboard.BOARD_HEIGHT / 2 - 10, null);
             g.drawImage(right_arrow_on, drawX + Gameboard.BOARD_WIDTH + 30, drawY + Gameboard.BOARD_HEIGHT / 2 - 10, null);
         }
         else if (goingDown) {
-            g.drawImage(up_arrow_off, drawX + Gameboard.BOARD_WIDTH / 2 - 10, drawY - Gameboard.BOARD_HEIGHT / 2 + 120, null);
             g.drawImage(down_arrow_on, drawX + Gameboard.BOARD_WIDTH / 2 - 10, drawY + Gameboard.BOARD_HEIGHT - Gameboard.BOARD_HEIGHT / 2 + 220, null);
-            g.drawImage(left_arrow_off, drawX - 60, drawY + Gameboard.BOARD_HEIGHT / 2 - 10, null);
-            g.drawImage(right_arrow_off, drawX + Gameboard.BOARD_WIDTH + 30, drawY + Gameboard.BOARD_HEIGHT / 2 - 10, null);
-        }
-        else {
-            g.drawImage(up_arrow_off, drawX + Gameboard.BOARD_WIDTH / 2 - 10, drawY - Gameboard.BOARD_HEIGHT / 2 + 120, null);
-            g.drawImage(down_arrow_off, drawX + Gameboard.BOARD_WIDTH / 2 - 10, drawY + Gameboard.BOARD_HEIGHT - Gameboard.BOARD_HEIGHT / 2 + 220, null);
-            g.drawImage(left_arrow_off, drawX - 60, drawY + Gameboard.BOARD_HEIGHT / 2 - 10, null);
-            g.drawImage(right_arrow_off, drawX + Gameboard.BOARD_WIDTH + 30, drawY + Gameboard.BOARD_HEIGHT / 2 - 10, null);
         }
     }
 }

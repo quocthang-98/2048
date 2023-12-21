@@ -2,21 +2,18 @@ package main;
 
 import javax.swing.JFrame;
 
-public class GameWindow {
-
-    private JFrame jFrame;
+public class GameWindow extends JFrame {
     
     public GameWindow(GamePanel gamePanel) {
-        jFrame = new JFrame();
-        jFrame.setTitle("2048");
-        jFrame.setResizable(false);
-        jFrame.add(gamePanel);
 
-        jFrame.pack();
+        this.setTitle("2048");
+        this.setResizable(false);
+        this.add(gamePanel);
 
-        jFrame.setLocationRelativeTo(null);
-        jFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.pack();
 
-        jFrame.setVisible(true);
+        this.setLocationRelativeTo(null);
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setVisible(true);
     }
 }

@@ -11,7 +11,6 @@ import java.awt.Stroke;
 
 import main.GamePanel;
 
-
 public class Tile {
 
     public static final int TILE_WIDTH = 80;
@@ -35,6 +34,10 @@ public class Tile {
     private double scaleOnSpawn = 0.1;
     private BufferedImage spawnImage;
 
+    private boolean isVanishingAnimation = false;
+    private double scaleOnVanish = 1;
+    private BufferedImage vanishImage;
+
     private boolean isCombiningAnimation = false;
     private final double constCombiningScale = 1.2;
     private double combineScale = constCombiningScale;
@@ -47,6 +50,7 @@ public class Tile {
         newPos = new Destination(x, y);
 
         spawnImage = new BufferedImage(TILE_WIDTH, TILE_HEIGHT, BufferedImage.TYPE_INT_ARGB);
+        vanishImage = new BufferedImage(TILE_WIDTH, TILE_HEIGHT, BufferedImage.TYPE_INT_ARGB);
         combineImage = new BufferedImage((int)(TILE_WIDTH * constCombiningScale), (int)(TILE_HEIGHT * constCombiningScale), BufferedImage.TYPE_INT_ARGB);
         
         tileImage = new BufferedImage(TILE_WIDTH, TILE_HEIGHT, BufferedImage.TYPE_INT_ARGB);
@@ -99,6 +103,16 @@ public class Tile {
         combineScale = constCombiningScale;
     }
 
+    public void setVanishingAnimation (boolean b) {
+        isVanishingAnimation = b;
+        scaleOnVanish = 1;
+    }
+
+    public boolean isVanishingAnimation () {
+        return isVanishingAnimation;
+    }
+
+    // graphics handling
     public void drawImage() {
         Graphics2D g = (Graphics2D) tileImage.getGraphics();
 
@@ -144,7 +158,7 @@ public class Tile {
         
         else if (number == 512) {
             bgColor = new Color(0xf5e455);
-            txtColor = new Color(0xffffff);
+            txtColor = new Color(0x0c0c0c);
         }
         
         else if (number == 1024) {
@@ -208,6 +222,23 @@ public class Tile {
             }
         }
 
+        else if (isVanishingAnimation) {
+            AffineTransform transform = new AffineTransform();
+            transform.translate(TILE_WIDTH / 2 - scaleOnVanish * TILE_WIDTH / 2, TILE_HEIGHT / 2 - scaleOnVanish * TILE_HEIGHT / 2);
+            transform.scale(scaleOnVanish, scaleOnVanish);
+
+            Graphics2D g2d = (Graphics2D) spawnImage.getGraphics();
+            g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+            
+            g2d.drawImage(tileImage, transform, null);
+            scaleOnSpawn -= 0.05;
+            g2d.dispose();
+
+            if (scaleOnVanish <= 0.1) {
+                isVanishingAnimation = false;
+            }
+        }
+
         else if (isCombiningAnimation) {
             AffineTransform transform = new AffineTransform();
             transform.scale(combineScale, combineScale);
@@ -230,6 +261,10 @@ public class Tile {
     public void drawTile(Graphics2D g) {
         if (isSpawningAnimation) {
             g.drawImage(spawnImage, x, y, null); 
+        }
+
+        else if (isVanishingAnimation) {
+            g.drawImage(vanishImage, x, y, null); 
         }
 
         else if (isCombiningAnimation) {
