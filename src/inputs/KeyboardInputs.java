@@ -79,20 +79,20 @@ public class KeyboardInputs implements KeyListener {
                 gameboard.moveTiles(Direction.RIGHT);
             }
             if (typed(KeyEvent.VK_Q)) {
-                if (gameboard.getAbility1().isReady) {
+                if (gameboard.ab1IsReady()) {
 
-                    gameboard.getAbility1().isReady = false;
-                    gameboard.getAbility1().castAbility();
+                    gameboard.setAb1Status(false);
+                    gameboard.doubleAllTiles();
 
                     gPanel.getAb1Thread().resetDuration();
                     gPanel.getAb1Thread().startTimer();
                 }
             }
             if (typed(KeyEvent.VK_E)) {
-                if (gameboard.getAbility2().isReady) {
+                if (gameboard.ab2IsReady()) {
 
-                    gameboard.getAbility2().isReady = false;
-                    gameboard.getAbility2().castAbility();
+                    gameboard.setAb2Status(false);
+                    gameboard.removeAllTwoTiles();
 
                     gPanel.getAb2Thread().resetDuration();
                     gPanel.getAb2Thread().startTimer();

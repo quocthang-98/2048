@@ -1,5 +1,7 @@
 package main;
 
+import threads.GameThread;
+
 public class Game {
     
     public Game() {

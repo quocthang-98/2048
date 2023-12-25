@@ -3,7 +3,7 @@ package threads;
 import main.GamePanel;
 import main.GameState;
 
-public class Ability2Thread extends AbilityThread {
+public class Ability2Thread extends AbilityThread{
 
     private GamePanel gp;
 
@@ -30,12 +30,12 @@ public class Ability2Thread extends AbilityThread {
     private void countDown() {
 
         long sec = duration / 1000;
-        gp.getGameboard().getAbility2().timeCount = gp.getGameboard().AB2_COOLDOWN - sec;
+        gp.getGameboard().ab2_cdTime = gp.getGameboard().AB2_COOLDOWN - sec;
 
-        if (gp.getGameboard().getAbility2().timeCount <= 0) {
+        if (gp.getGameboard().ab2_cdTime <= 0) {
             this.stopTimer();
-            gp.getGameboard().getAbility2().timeCount = 0;
-            gp.getGameboard().getAbility2().isReady = true;
+            gp.getGameboard().ab2_cdTime = 0;
+            gp.getGameboard().setAb2Status(true);
         }
     }
 }
