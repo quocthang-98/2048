@@ -4,8 +4,7 @@ import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
 import inputs.KeyboardInputs;
-import threads.Ability1Thread;
-import threads.Ability2Thread;
+import threads.*;
 import tiles.Gameboard;
 
 import java.awt.Color;
