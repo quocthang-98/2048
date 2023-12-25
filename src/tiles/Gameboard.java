@@ -6,6 +6,9 @@ import java.awt.image.BufferedImage;
 import java.io.FileInputStream;
 import java.util.Random;
 import javax.imageio.ImageIO;
+
+import abilities.*;
+
 import java.awt.Font;
 
 import data.DataManager;
@@ -48,9 +51,10 @@ public class Gameboard {
     
     public static Color boardBGColor = new Color (0xbdba8f);
     public static Color slotBGColor = new Color(0xd4d1ab);
-    public static Color hudColor = new Color(0xE0D5AB);
+    public static Color hudColor = new Color(0xe0d5ab);
     public static Color scoreHUDColor = new Color(0xfcf3cf);
     public static Color outlineColor = new Color (0x0c0c0c);
+    public static Color abilitiesBoxColor = new Color (0xc1b894);
 
     private final int ABILITIES_ICON_SIZE = 80;
     private final Font COOLDOWN_FONT = new Font("Helvetica Neue", Font.BOLD, 32);
@@ -59,22 +63,25 @@ public class Gameboard {
     private int ab2IconPosX = ab1IconPosX;
     private int ab2IconPosY = ab1IconPosY + ABILITIES_ICON_SIZE + SPACING;
 
-    private boolean ab1Ready = false;
-    private boolean ab2Ready = false;
-
     // MANAGE THE COOLDOWN OF EACH ABILITY
-    public final int AB1_COOLDOWN = 5;
-    public final int AB2_COOLDOWN = 10;
+    private final int ABILITIES_COUNT = 2;
+    private PlayerAbility1 player_ab1;
+    private PlayerAbility2 player_ab2;
 
-    public long ab1_cdTime = AB1_COOLDOWN;
-    public long ab2_cdTime = AB2_COOLDOWN;
+    private int abBoxPosX = ab1IconPosX - SPACING;
+    private int abBoxPosY = ab1IconPosY - SPACING;
+    private int abBoxWidth = ab1IconPosX + SPACING * 3;
+    private int abBoxHeight = SPACING * 3 + ABILITIES_ICON_SIZE * ABILITIES_COUNT;
+
+    public final long AB1_COOLDOWN = 5;
+    public final long AB2_COOLDOWN = 10;
 
     // SCORE & HIGHEST SCORE
     private int score = 0;
     private int highScore = 0;
 
-    private boolean won = false;
-    private boolean lost = false;
+    public boolean won = false;
+    public boolean lost = false;
 
     private DataManager dataManager; // for saving & loading high score
 
@@ -86,6 +93,9 @@ public class Gameboard {
         this.boardPosY = y;
 
         board = new Tile[ROWS][COLS];
+        player_ab1 = new PlayerAbility1(this, board, AB1_COOLDOWN);
+        player_ab2 = new PlayerAbility2(this, board, AB2_COOLDOWN);
+
         gameBoardImage = new BufferedImage(BOARD_WIDTH, BOARD_HEIGHT, BufferedImage.TYPE_INT_RGB);
         hudImage = new BufferedImage(HUD_WIDTH, HUD_HEIGHT, BufferedImage.TYPE_INT_RGB);
         finalBoardImage = new BufferedImage(BOARD_WIDTH, BOARD_HEIGHT, BufferedImage.TYPE_INT_RGB);
@@ -121,30 +131,14 @@ public class Gameboard {
         this.highScore = highScore;
     }
 
-    // Abilities cooldown & charges
-    public boolean ab1IsReady () {
-        return ab1Ready;
+    // Ability objects
+    public Ability getAbility1() {
+        return player_ab1;
     }
 
-    public boolean ab2IsReady () {
-        return ab2Ready;
+    public Ability getAbility2() {
+        return player_ab2;
     }
-
-    public void setAb1Status (boolean s) {
-        this.ab1Ready = s;
-    }
-
-    public void setAb2Status (boolean s) {
-        this.ab2Ready = s;
-    }
-
-    // public void setAb1CdTime (int c) {
-    //     this.ab1_cdTime = c;
-    // }
-
-    // public int getAb1CdTime () {
-    //   return ab1_cdTime;
-    // }
 
     // GAME MECHANIC
     // spawn 2 random tiles when starting a new game
@@ -465,38 +459,6 @@ public class Gameboard {
         return false;
     }
 
-    // ability 1
-    public void doubleAllTiles () {
-        for (int row = 0; row < ROWS; row++) {
-            for (int col = 0; col < COLS; col++) {
-                Tile current = board[row][col];
-                if (current == null) {
-                    continue;
-                }
-                current.setValue(current.getValue() * 2);
-                current.setCombiningAnimation(true);                  
-                if (current.getValue() == 2048) {  
-                    won = true;
-                }
-            }
-        }
-    }
-    
-    // ability 2
-    public void removeAllTwoTiles () {
-        for (int row = 0; row < ROWS; row++) {
-            for (int col = 0; col < COLS; col++) {
-                Tile current = board[row][col];
-                if (current == null) {
-                    continue;
-                }
-                if (current.getValue() == 2) {
-                    current.setVanishingAnimation(true);
-                    board[row][col] = null;
-                }           
-            }
-        }
-    }
     // render the board frame-by-frame
     public void renderBoard(Graphics2D g) {
         // g2 will work with the finalBoardImage image
@@ -537,6 +499,9 @@ public class Gameboard {
 
         g.setColor(scoreHUDColor);
         g.fillRect(0, 0, SCORE_HUD_WIDTH, SCORE_HUD_HEIGHT);
+
+        g.setColor(abilitiesBoxColor);
+        g.fillRoundRect(abBoxPosX, abBoxPosY, abBoxWidth, abBoxHeight, Tile.ARC_WIDTH, Tile.ARC_HEIGHT);
         
         // write scores
         g.setColor(Color.DARK_GRAY);
@@ -546,38 +511,53 @@ public class Gameboard {
         g.setColor(Color.GRAY);
         g.drawString("Best: " + highScore, HSCORE_X, HSCORE_Y);
 
-        // draw abilities graphics
-        if (ab1Ready) {
+        // update & draw abilities graphics
+
+        updateAbilitiesGraphics();
+        renderAbilitiesGraphics(g);
+
+        // cooldown clocks
+        if (player_ab1.timeCount > 0) {
+            g.setColor(Color.WHITE);
+            g.setFont(COOLDOWN_FONT);
+            int drawX = ab1IconPosX + ((ab1IconPosX)
+                            - DrawUtilz.getMessageWidth("" + player_ab1.timeCount, COOLDOWN_FONT, g)) / 2 + ABILITIES_ICON_SIZE / 12;
+            int drawY = ab1IconPosY + ABILITIES_ICON_SIZE / 2 + 12;
+            g.drawString("" + player_ab1.timeCount, drawX, drawY);
+        }
+    
+        if (player_ab2.timeCount > 0) {
+            g.setColor(Color.WHITE);
+            g.setFont(COOLDOWN_FONT);
+            int drawX = ab2IconPosX + ((ab2IconPosX)
+                            - DrawUtilz.getMessageWidth("" + player_ab2.timeCount, COOLDOWN_FONT, g)) / 2 + ABILITIES_ICON_SIZE / 12;
+            int drawY = ab2IconPosY + ABILITIES_ICON_SIZE / 2 + 12;
+            g.drawString("" + player_ab2.timeCount, drawX, drawY);
+        }
+
+        g.dispose();
+    }
+
+
+    public void updateAbilitiesGraphics() {
+        //
+    }
+
+    public void renderAbilitiesGraphics(Graphics2D g) {
+
+        if (player_ab1.isReady) {
             g.drawImage(ability1Image_on, ab1IconPosX, ab1IconPosY,  null);
         }
         else {
-            g.drawImage(ability1Image_off, ab1IconPosX, ab1IconPosY, null);
+           g.drawImage(ability1Image_off, ab1IconPosX, ab1IconPosY, null);  
+
         }
 
-        if (ab2Ready) {
+        if (player_ab2.isReady) {
             g.drawImage(ability2Image_on, ab2IconPosX, ab2IconPosY,  null);
         }
         else {
             g.drawImage(ability2Image_off, ab2IconPosX, ab2IconPosY,  null);
         }
-
-        // cooldown clocks
-        if (ab1_cdTime > 0) {
-            g.setColor(Color.WHITE);
-            g.setFont(COOLDOWN_FONT);
-            int drawX = ab1IconPosX + ((ab1IconPosX) - DrawUtilz.getMessageWidth("" + ab1_cdTime, COOLDOWN_FONT, g)) / 2 + ABILITIES_ICON_SIZE / 12;
-            int drawY = ab1IconPosY + ABILITIES_ICON_SIZE / 2 + 12;
-            g.drawString("" + ab1_cdTime, drawX, drawY);
-        }
-    
-        if (ab2_cdTime > 0) {
-            g.setColor(Color.WHITE);
-            g.setFont(COOLDOWN_FONT);
-            int drawX = ab2IconPosX + ((ab2IconPosX) - DrawUtilz.getMessageWidth("" + ab2_cdTime, COOLDOWN_FONT, g)) / 2 + ABILITIES_ICON_SIZE / 12;
-            int drawY = ab2IconPosY + ABILITIES_ICON_SIZE / 2 + 12;
-            g.drawString("" + ab2_cdTime, drawX, drawY);
-        }
-
-        g.dispose();
     }
 }
