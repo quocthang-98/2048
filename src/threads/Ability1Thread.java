@@ -19,7 +19,6 @@ public class Ability1Thread extends AbilityThread{
 
         setDuration();
         if (gp.gameState == GameState.PLAY) {
-            System.out.println(duration);
             countDown();
         }
         else if (gp.gameState == GameState.PAUSE) {
@@ -30,12 +29,12 @@ public class Ability1Thread extends AbilityThread{
     private void countDown() {
 
         long sec = duration / 1000;
-        gp.getGameboard().ab1_cdTime = gp.getGameboard().AB1_COOLDOWN - sec;
+        gp.getGameboard().getAbility1().timeCount = gp.getGameboard().AB1_COOLDOWN - sec;
 
-        if (gp.getGameboard().ab1_cdTime <= 0) {
+        if (gp.getGameboard().getAbility1().timeCount <= 0) {
             this.stopTimer();
-            gp.getGameboard().ab1_cdTime = 0;
-            gp.getGameboard().setAb1Status(true);
+            gp.getGameboard().getAbility1().timeCount = 0;
+            gp.getGameboard().getAbility1().isReady = true;
         }
     }
 }
