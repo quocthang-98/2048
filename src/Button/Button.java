@@ -32,12 +32,12 @@ public class Button extends JFrame implements ActionListener {
         tryAgainButton.addActionListener(this);
         add(tryAgainButton);
         exitButton = new JButton("Exit");
-        exitButton.setBounds(100,100,200,30);
-        exitButton.setLocation(200,40);
+        exitButton.setBounds(50,50,200,30);
+        exitButton.setLocation(0,30);
         exitButton.addActionListener(this);
         add(exitButton);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(210,70);
+        setSize(210,100);
         setLayout(null);
         setVisible(true);
     }
