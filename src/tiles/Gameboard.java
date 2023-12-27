@@ -7,6 +7,7 @@ import java.io.FileInputStream;
 import java.util.Random;
 import javax.imageio.ImageIO;
 
+import Button.Button;
 import abilities.*;
 
 import java.awt.Font;
@@ -350,7 +351,7 @@ public class Gameboard {
             
             // if lost here
             if (lost) {
-                
+                Button button = new Button();
             }
         }
     }

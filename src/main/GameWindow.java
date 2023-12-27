@@ -6,14 +6,17 @@ public class GameWindow extends JFrame {
     
     public GameWindow(GamePanel gamePanel) {
 
-        this.setTitle("2048");
-        this.setResizable(false);
-        this.add(gamePanel);
+        setTitle("2048");
+        setResizable(false);
+        add(gamePanel);
 
-        this.pack();
+        pack();
 
-        this.setLocationRelativeTo(null);
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setVisible(true);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setVisible(true);
     }
+    public void disposeFrame(){
+        dispose();
+    } // dispose the frame
 }
