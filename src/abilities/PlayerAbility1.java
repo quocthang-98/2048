@@ -4,7 +4,7 @@ import tiles.Gameboard;
 import tiles.Tile;
 
 public class PlayerAbility1 extends Ability {
-    
+
     public PlayerAbility1 (Gameboard gb, Tile[][] board, long cd) {
         super(gb, board, cd);
     }
@@ -18,8 +18,8 @@ public class PlayerAbility1 extends Ability {
                     continue;
                 }
                 current.setValue(current.getValue() * 2);
-                current.setCombiningAnimation(true);                  
-                if (current.getValue() == 2048) {  
+                current.setCombiningAnimation(true);
+                if (current.getValue() == 2048) {
                     gb.won = true;
                 }
             }

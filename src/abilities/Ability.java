@@ -7,7 +7,7 @@ public abstract class Ability {
 
     public Gameboard gb;
     public Tile[][] board;
-    
+
     public long ABILITY_COOLDOWN;
     public long timeCount;
     public boolean isReady;
