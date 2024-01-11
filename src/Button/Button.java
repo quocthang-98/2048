@@ -1,6 +1,7 @@
 package Button;
 
 import main.Game;
+import tiles.Gameboard;
 
 
 import javax.swing.*;
@@ -40,6 +41,7 @@ public class Button extends JFrame implements ActionListener {
         } else {
             try{
                 Game.getframe().disposeFrame();
+                Gameboard.getGameOverScreen().disposeFrame();
                 dispose();}
             catch(Exception er){
                 er.printStackTrace();

@@ -6,6 +6,7 @@ import java.awt.image.BufferedImage;
 import java.io.FileInputStream;
 import java.util.Random;
 import javax.imageio.ImageIO;
+import javax.swing.*;
 
 import Button.Button;
 import ExperienceBar.ExperienceBar;
@@ -14,6 +15,7 @@ import abilities.*;
 import java.awt.Font;
 
 import data.DataManager;
+import gui.GameOverScreen;
 import main.GamePanel;
 import inputs.Direction;
 
@@ -24,6 +26,7 @@ public class Gameboard {
 
     private final int startingTilesCount = 2;
     private Tile[][] board;
+    private static GameOverScreen gameOverScreen;
 
     private BufferedImage gameBoardImage;
     private BufferedImage hudImage;
@@ -356,7 +359,15 @@ public class Gameboard {
             }
         }
     }
+    private void displayGameOverScreen() {
+        SwingUtilities.invokeLater(() -> {
+            gameOverScreen = new GameOverScreen("You Lose");
 
+        });
+    }
+    public static GameOverScreen getGameOverScreen(){
+        return gameOverScreen;
+    }
     // check if the player has lost the game
     public void checkLoss() {
         for (int row = 0; row < ROWS; row++) {
@@ -369,7 +380,8 @@ public class Gameboard {
             }
         }
 
-        lost = true;                                                // if reaches this point, the game ends
+        lost = true;
+        displayGameOverScreen();// if reaches this point, the game ends
     }
 
     public boolean checkSurrounding (int row, int col, Tile tile) {

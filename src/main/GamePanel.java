@@ -42,7 +42,7 @@ public class GamePanel extends JPanel {
     private BufferedImage left_arrow_on;
     private BufferedImage right_arrow_off;
     private BufferedImage right_arrow_on;
-
+    private BufferedImage backgroundImage;
     private boolean goingUp = false;
     private boolean goingLeft = false;
     private boolean goingDown = false;
@@ -86,7 +86,7 @@ public class GamePanel extends JPanel {
             left_arrow_off = ImageIO.read(new FileInputStream("resources/img/left_arrow_off.png"));
             right_arrow_on = ImageIO.read(new FileInputStream("resources/img/right_arrow_on.png"));
             right_arrow_off = ImageIO.read(new FileInputStream("resources/img/right_arrow_off.png"));
-
+            backgroundImage = ImageIO.read(new FileInputStream("resources/img/OIG.jpg"));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -147,7 +147,7 @@ public class GamePanel extends JPanel {
             g.drawImage(down_arrow_off, drawX + Gameboard.BOARD_WIDTH / 2 - 10, drawY + Gameboard.BOARD_HEIGHT - Gameboard.BOARD_HEIGHT / 2 + 220, null);
             g.drawImage(left_arrow_off, drawX - 60, drawY + Gameboard.BOARD_HEIGHT / 2 - 10, null);
             g.drawImage(right_arrow_off, drawX + Gameboard.BOARD_WIDTH + 30, drawY + Gameboard.BOARD_HEIGHT / 2 - 10, null);
-
+            g.drawImage(backgroundImage, 0, 0, WIDTH, HEIGHT, null);
             // update & render the current state of the arrow
             arrowUpdate();
             arrowRender(g);
