@@ -1,7 +1,7 @@
 package threads;
 
 public abstract class AbilityThread {
-    
+
     protected boolean isRunning;
     protected long duration, prevDuration, startTime;
 
