@@ -35,6 +35,7 @@ public class Button extends JFrame implements ActionListener {
     public void actionPerformed(ActionEvent e){
         if (e.getSource() == tryAgainButton){
             Game.getframe().disposeFrame();
+            Gameboard.getGameOverScreen().disposeFrame();
             dispose();
             Game.setInstanceNull();
             Game.getInstance();
