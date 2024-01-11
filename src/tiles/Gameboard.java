@@ -178,6 +178,8 @@ public class Gameboard {
         }
         randTime++;
     }
+    /// input: number of calls
+    // output: 1 value at each call
 
     public int getTileDrawX(int col) {
         return SPACING + (SPACING + Tile.TILE_WIDTH) * col;
@@ -407,6 +409,10 @@ public class Gameboard {
         }
         return false;
     }
+    // one algorithm
+    // input: the value of x, y of tile
+    // output: true/false
+    // function: check whether other tiles are located around current tile
 
     // move a tile
     public boolean move (int row, int col, int horDir, int verDir, Direction dir) {
@@ -475,6 +481,11 @@ public class Gameboard {
         }
         return false;
     }
+    // one algorithm
+    // input: the next value of x, y  of tile
+    // output: true/false
+    // function: check whether the tile is going to go outside the board
+
 
     // render the board frame-by-frame
     public void renderBoard(Graphics2D g) {
