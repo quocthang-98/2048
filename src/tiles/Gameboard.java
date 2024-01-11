@@ -267,6 +267,7 @@ public class Gameboard {
     }
 
     // this is used to move the tiles, based on the player's direction instruction
+    // input -> 1 direction -> 1 action
     public void moveTiles(Direction dir) {
 
         // this define if at least 1 cell has moved
@@ -340,6 +341,8 @@ public class Gameboard {
         else {
             canMove = false; // this "else" case is actually unnecessary
         }
+        //
+
 
         for (int row = 0; row < ROWS; row++) {
             for (int col = 0; col < COLS; col++) {
@@ -385,7 +388,10 @@ public class Gameboard {
         lost = true;
         displayGameOverScreen();// if reaches this point, the game ends
     }
-
+    // input: number of calls
+    // output: true/false -> variable 'lost'
+    // function: check whether the gameboard is full or not
+    // complexity:
     public boolean checkSurrounding (int row, int col, Tile tile) {
         if (row > 0) {  // check the tile above
             Tile check = board[row - 1][col];
@@ -416,7 +422,7 @@ public class Gameboard {
 
     // move a tile
     public boolean move (int row, int col, int horDir, int verDir, Direction dir) {
-        boolean canMove = false;
+        boolean canMove = false;// ensure that if the tile which is at the boundary of the board does not move, other folowing tiles in the same row will not move
         int temp_exp = 0; // create a temp variable to save the received exp
 
         Tile current = board[row][col];     // fetch the cell data
@@ -424,6 +430,7 @@ public class Gameboard {
             return false;                   // don't move
         }
 
+        // ensure that the current tile is not null and can move
         boolean move = true;
         int newRow = row;
         int newCol = col;
@@ -468,18 +475,19 @@ public class Gameboard {
     // if the cell want to go outside the board's area, this method will return false.
     public boolean isOutOfBound(Direction dir, int row, int col) {
         if (dir == Direction.LEFT) {
-            return col < 0;
+            return (col < 0); // check whether the tile is at the left bound spot
+            // return true if  the tile is at the left bound spot
         }
         else if (dir == Direction.RIGHT) {
-            return col > COLS - 1;
-        }
+            return (col > COLS - 1);// check whether the tile is at the left bound spot
+        } //return true if the tile is at the right bound spot
         else if (dir == Direction.DOWN) {
-            return row > ROWS - 1;
-        }
+            return (row > ROWS - 1);//check whether the tile is at the bottom spot
+        } // return true if the tile is at the bottom bound spot
         else if (dir == Direction.UP) {
-            return row < 0;
-        }
-        return false;
+            return (row < 0); // check whether the tile is at the left bound spot
+        }// return true if the tile is at the top bound spot
+        return false; // if the tile is in the middle spot, the return value is false
     }
     // one algorithm
     // input: the next value of x, y  of tile

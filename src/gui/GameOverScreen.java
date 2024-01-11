@@ -58,6 +58,7 @@ public class GameOverScreen extends JFrame {
         int y = (getHeight() - messageHeight) / 2;
 
         g2d.drawString(message, x, y);
+        g2d.dispose();
     }
     public void disposeFrame(){
         dispose();
