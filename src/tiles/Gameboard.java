@@ -7,6 +7,8 @@ import java.io.FileInputStream;
 import java.util.Random;
 import javax.imageio.ImageIO;
 
+import Button.Button;
+import ExperienceBar.ExperienceBar;
 import abilities.*;
 
 import java.awt.Font;
@@ -16,7 +18,7 @@ import main.GamePanel;
 import inputs.Direction;
 
 public class Gameboard {
-    
+
     public static final int ROWS = 4;
     public static final int COLS = 4;
 
@@ -48,7 +50,7 @@ public class Gameboard {
     public static final int SCORE_Y = SCORE_HUD_HEIGHT / 2;
     public static final int HSCORE_X = SCORE_X;
     public static final int HSCORE_Y = SCORE_Y + SCORE_Y / 2;
-    
+
     public static Color boardBGColor = new Color (0xbdba8f);
     public static Color slotBGColor = new Color(0xd4d1ab);
     public static Color hudColor = new Color(0xe0d5ab);
@@ -99,7 +101,7 @@ public class Gameboard {
         gameBoardImage = new BufferedImage(BOARD_WIDTH, BOARD_HEIGHT, BufferedImage.TYPE_INT_RGB);
         hudImage = new BufferedImage(HUD_WIDTH, HUD_HEIGHT, BufferedImage.TYPE_INT_RGB);
         finalBoardImage = new BufferedImage(BOARD_WIDTH, BOARD_HEIGHT, BufferedImage.TYPE_INT_RGB);
-        
+
         try {
             ability1Image_on = ImageIO.read(new FileInputStream("resources/img/ab1_on.png"));
             ability1Image_off = ImageIO.read(new FileInputStream("resources/img/ab1_off.png"));
@@ -162,7 +164,7 @@ public class Gameboard {
             Tile tile = board[row][col];
             if (tile == null) {
                 int value = random.nextInt(10);
-                if (value < 9) {
+                if (value <= 9) {
                     value = 2;
                 }
                 else value = 4;
@@ -183,7 +185,7 @@ public class Gameboard {
     }
 
     public void drawGameboard() {
-        
+
         Graphics2D g = (Graphics2D) gameBoardImage.getGraphics();
         // draw the background for the board (let it match the panel's color)
         g.setColor(GamePanel.bgColor);
@@ -202,7 +204,7 @@ public class Gameboard {
                 g.fillRoundRect(drawX, drawY, Tile.TILE_WIDTH, Tile.TILE_HEIGHT, Tile.ARC_WIDTH, Tile.ARC_HEIGHT);
             }
         }
-        
+
         g.dispose();
     }
 
@@ -262,7 +264,7 @@ public class Gameboard {
     // this is used to move the tiles, based on the player's direction instruction
     public void moveTiles(Direction dir) {
 
-        // this define if at least 1 cell has moved 
+        // this define if at least 1 cell has moved
         // (if no single cell moved, that means the player has lost)
         boolean canMove = false;
 
@@ -279,7 +281,7 @@ public class Gameboard {
                     }
                     else {                                          // if canMove has been set to true by other moved previous cells
                         move(row, col, xDir, yDir, dir);            // just simply move this cell
-                                                                    // this moving mechanic is the same for other 3 directions
+                        // this moving mechanic is the same for other 3 directions
                     }
                 }
             }
@@ -347,10 +349,10 @@ public class Gameboard {
         if (canMove) {          // if at least 1 tile has moved
             spawnRandomTile();  // spawn another tile
             checkLoss();        // check if the player has lost the game
-            
+
             // if lost here
             if (lost) {
-                
+                Button button = new Button();
             }
         }
     }
@@ -397,6 +399,7 @@ public class Gameboard {
     // move a tile
     public boolean move (int row, int col, int horDir, int verDir, Direction dir) {
         boolean canMove = false;
+        int temp_exp = 0; // create a temp variable to save the received exp
 
         Tile current = board[row][col];     // fetch the cell data
         if (current == null) {              // if there is no tile here
@@ -426,8 +429,10 @@ public class Gameboard {
                 board[newRow][newCol].setNewPos(new Destination(newRow, newCol));
                 board[newRow][newCol].setCombiningAnimation(true);
 
-                // score += board[newRow][newCol].getValue();
-                score++;
+                temp_exp += board[newRow][newCol].getValue(); // calculate the received exp
+                ExperienceBar.setExp(temp_exp);
+
+                score++;// calculate the score of game
                 if (score >= highScore) {
                     highScore = score;
                 }
@@ -462,10 +467,10 @@ public class Gameboard {
     // render the board frame-by-frame
     public void renderBoard(Graphics2D g) {
         // g2 will work with the finalBoardImage image
-        Graphics2D g2 = (Graphics2D) finalBoardImage.getGraphics();    
+        Graphics2D g2 = (Graphics2D) finalBoardImage.getGraphics();
 
         // draw the gameBoardImage on the finalBoardImage graphics
-        g2.drawImage(gameBoardImage, 0, 0, null);          
+        g2.drawImage(gameBoardImage, 0, 0, null);
 
         // draw the number tiles
         for (int i = 0; i < ROWS; i++) {
@@ -483,7 +488,7 @@ public class Gameboard {
         g.drawImage(finalBoardImage, boardPosX, boardPosY, null);
 
         // render the HUD
-        this.renderHUD(); 
+        this.renderHUD();
         g.drawImage(hudImage, 0, 0, null);
 
         g.dispose();
@@ -501,8 +506,8 @@ public class Gameboard {
         g.fillRect(0, 0, SCORE_HUD_WIDTH, SCORE_HUD_HEIGHT);
 
         g.setColor(abilitiesBoxColor);
-        g.fillRoundRect(abBoxPosX, abBoxPosY, abBoxWidth, abBoxHeight, Tile.ARC_WIDTH, Tile.ARC_HEIGHT);
-        
+        // g.fillRoundRect(abBoxPosX, abBoxPosY, abBoxWidth, abBoxHeight, Tile.ARC_WIDTH, Tile.ARC_HEIGHT);
+
         // write scores
         g.setColor(Color.DARK_GRAY);
         g.setFont(new Font("Helvetica Neue", Font.BOLD,28));
@@ -514,27 +519,38 @@ public class Gameboard {
         // update & draw abilities graphics
 
         updateAbilitiesGraphics();
+
+
+        // main part for turn on/off skills
         renderAbilitiesGraphics(g);
+        //////////////////
 
+        // turn on/off cooldown of each skill
         // cooldown clocks
-        if (player_ab1.timeCount > 0) {
-            g.setColor(Color.WHITE);
-            g.setFont(COOLDOWN_FONT);
-            int drawX = ab1IconPosX + ((ab1IconPosX)
-                            - DrawUtilz.getMessageWidth("" + player_ab1.timeCount, COOLDOWN_FONT, g)) / 2 + ABILITIES_ICON_SIZE / 12;
-            int drawY = ab1IconPosY + ABILITIES_ICON_SIZE / 2 + 12;
-            g.drawString("" + player_ab1.timeCount, drawX, drawY);
+        // Skill 1
+        if (ExperienceBar.getLevel() >1) {
+            if (player_ab1.timeCount > 0) {
+                g.setColor(Color.WHITE);
+                g.setFont(COOLDOWN_FONT);
+                int drawX = ab1IconPosX + ((ab1IconPosX)
+                        - DrawUtilz.getMessageWidth("" + player_ab1.timeCount, COOLDOWN_FONT, g)) / 2 + ABILITIES_ICON_SIZE / 12;
+                int drawY = ab1IconPosY + ABILITIES_ICON_SIZE / 2 + 12;
+                g.drawString("" + player_ab1.timeCount, drawX, drawY);
+            }
         }
-    
-        if (player_ab2.timeCount > 0) {
-            g.setColor(Color.WHITE);
-            g.setFont(COOLDOWN_FONT);
-            int drawX = ab2IconPosX + ((ab2IconPosX)
-                            - DrawUtilz.getMessageWidth("" + player_ab2.timeCount, COOLDOWN_FONT, g)) / 2 + ABILITIES_ICON_SIZE / 12;
-            int drawY = ab2IconPosY + ABILITIES_ICON_SIZE / 2 + 12;
-            g.drawString("" + player_ab2.timeCount, drawX, drawY);
+////////////////////
+        //Skill 2
+        if (ExperienceBar.getLevel() >2){
+            if (player_ab2.timeCount > 0) {
+                g.setColor(Color.WHITE);
+                g.setFont(COOLDOWN_FONT);
+                int drawX = ab2IconPosX + ((ab2IconPosX)
+                        - DrawUtilz.getMessageWidth("" + player_ab2.timeCount, COOLDOWN_FONT, g)) / 2 + ABILITIES_ICON_SIZE / 12;
+                int drawY = ab2IconPosY + ABILITIES_ICON_SIZE / 2 + 12;
+                g.drawString("" + player_ab2.timeCount, drawX, drawY);
+            }
         }
-
+/////////////////////
         g.dispose();
     }
 
@@ -544,20 +560,27 @@ public class Gameboard {
     }
 
     public void renderAbilitiesGraphics(Graphics2D g) {
+        if (ExperienceBar.getLevel() >1){
+            // render skill 1
+            if (player_ab1.isReady) {
+                g.drawImage(ability1Image_on, ab1IconPosX, ab1IconPosY,  null);
+            }
+            else {
+                g.drawImage(ability1Image_off, ab1IconPosX, ab1IconPosY, null);
 
-        if (player_ab1.isReady) {
-            g.drawImage(ability1Image_on, ab1IconPosX, ab1IconPosY,  null);
-        }
-        else {
-           g.drawImage(ability1Image_off, ab1IconPosX, ab1IconPosY, null);  
-
+            }
         }
 
-        if (player_ab2.isReady) {
-            g.drawImage(ability2Image_on, ab2IconPosX, ab2IconPosY,  null);
-        }
-        else {
-            g.drawImage(ability2Image_off, ab2IconPosX, ab2IconPosY,  null);
+/////////////
+        if (ExperienceBar.getLevel() >2){
+            //render skill 2
+            if (player_ab2.isReady) {
+                g.drawImage(ability2Image_on, ab2IconPosX, ab2IconPosY,  null);
+            }
+            else {
+                g.drawImage(ability2Image_off, ab2IconPosX, ab2IconPosY,  null);
+            }
+            /////////////
         }
     }
 }

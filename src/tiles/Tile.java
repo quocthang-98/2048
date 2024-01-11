@@ -52,7 +52,7 @@ public class Tile {
         spawnImage = new BufferedImage(TILE_WIDTH, TILE_HEIGHT, BufferedImage.TYPE_INT_ARGB);
         vanishImage = new BufferedImage(TILE_WIDTH, TILE_HEIGHT, BufferedImage.TYPE_INT_ARGB);
         combineImage = new BufferedImage((int)(TILE_WIDTH * constCombiningScale), (int)(TILE_HEIGHT * constCombiningScale), BufferedImage.TYPE_INT_ARGB);
-        
+
         tileImage = new BufferedImage(TILE_WIDTH, TILE_HEIGHT, BufferedImage.TYPE_INT_ARGB);
         drawImage();
     }
@@ -120,57 +120,57 @@ public class Tile {
             bgColor = new Color(0xe9e9e9);
             txtColor = new Color(0x0c0c0c);
         }
-        
+
         else if (number == 4) {
             bgColor = new Color(0xa7cfdb);
             txtColor = new Color(0x0c0c0c);
         }
-        
+
         else if (number == 8) {
             bgColor = new Color(0xf79d3d);
             txtColor = new Color(0xffffff);
         }
-        
+
         else if (number == 16) {
             bgColor = new Color(0xf28007);
             txtColor = new Color(0xffffff);
         }
-        
+
         else if (number == 32) {
             bgColor = new Color(0xf55e3b);
             txtColor = new Color(0xffffff);
         }
-        
+
         else if (number == 64) {
             bgColor = new Color(0xff0000);
             txtColor = new Color(0xffffff);
         }
-        
+
         else if (number == 128) {
             bgColor = new Color(0xe9de84);
             txtColor = new Color(0x0c0c0c);
         }
-        
+
         else if (number == 256) {
             bgColor = new Color(0xf6e873);
             txtColor = new Color(0x0c0c0c);
         }
-        
+
         else if (number == 512) {
             bgColor = new Color(0xf5e455);
             txtColor = new Color(0x0c0c0c);
         }
-        
+
         else if (number == 1024) {
             bgColor = new Color(0xf7e12c);
             txtColor = new Color(0xffffff);
         }
-        
+
         else if (number == 2048) {
             bgColor = new Color(0xffe400);
             txtColor = new Color(0xffffff);
         }
-        
+
         else {
             bgColor = Color.BLACK;
             txtColor = Color.WHITE;
@@ -184,7 +184,7 @@ public class Tile {
         g.setStroke(stroke);
         g.drawRoundRect(0, 0, TILE_WIDTH, TILE_HEIGHT, ARC_WIDTH * 2, ARC_HEIGHT * 2);
         g.setColor(txtColor);
-        
+
         if (number <= 64) {
             font = GamePanel.font.deriveFont(36f);
         }
@@ -198,7 +198,7 @@ public class Tile {
         int drawX = TILE_WIDTH / 2 - DrawUtilz.getMessageWidth("" + number, font, g) / 2;
         /* Half the tile, and half the text width */
         int drawY = TILE_HEIGHT / 2 + DrawUtilz.getMessageHeight("" + number, font, g) / 2;
-        
+
         g.drawString("" + number, drawX, drawY);
         g.dispose();
     }
@@ -212,7 +212,7 @@ public class Tile {
 
             Graphics2D g2d = (Graphics2D) spawnImage.getGraphics();
             g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-            
+
             g2d.drawImage(tileImage, transform, null);
             scaleOnSpawn += 0.1;
             g2d.dispose();
@@ -229,7 +229,7 @@ public class Tile {
 
             Graphics2D g2d = (Graphics2D) spawnImage.getGraphics();
             g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-            
+
             g2d.drawImage(tileImage, transform, null);
             scaleOnSpawn -= 0.05;
             g2d.dispose();
@@ -245,7 +245,7 @@ public class Tile {
 
             Graphics2D g2d = (Graphics2D) combineImage.getGraphics();
             g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-            
+
             g2d.drawImage(tileImage, transform, null);
 
             combineScale -= 0.05;
@@ -260,16 +260,16 @@ public class Tile {
     // render the chosen animation from the update() method
     public void drawTile(Graphics2D g) {
         if (isSpawningAnimation) {
-            g.drawImage(spawnImage, x, y, null); 
+            g.drawImage(spawnImage, x, y, null);
         }
 
         else if (isVanishingAnimation) {
-            g.drawImage(vanishImage, x, y, null); 
+            g.drawImage(vanishImage, x, y, null);
         }
 
         else if (isCombiningAnimation) {
             g.drawImage(combineImage, (int)(x - (TILE_WIDTH * combineScale - TILE_WIDTH) / 2),
-                                        (int) (y - (TILE_HEIGHT * combineScale - TILE_HEIGHT) / 2), null);
+                    (int) (y - (TILE_HEIGHT * combineScale - TILE_HEIGHT) / 2), null);
         }
 
         else {
