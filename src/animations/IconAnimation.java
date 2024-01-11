@@ -15,7 +15,7 @@ public class IconAnimation {
     private double animationRate = 0.05;
 
     private boolean animaionCompleted = false;
-    
+
     public IconAnimation() {
     }
 
@@ -50,6 +50,6 @@ public class IconAnimation {
         }
 
         return animationIcon;
-       
+
     }
 }
