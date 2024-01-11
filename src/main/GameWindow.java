@@ -1,19 +1,24 @@
 package main;
 
-import javax.swing.JFrame;
+import javax.swing.*;
+import java.awt.*;
 
 public class GameWindow extends JFrame {
-    
+
+    // create a main frame to insert the main panel into
     public GameWindow(GamePanel gamePanel) {
 
-        this.setTitle("2048");
-        this.setResizable(false);
-        this.add(gamePanel);
+        setTitle("2048");
+        setResizable(false);
+        add(gamePanel);
+        pack();
+        setBackground(Color.WHITE);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setVisible(true);
 
-        this.pack();
-
-        this.setLocationRelativeTo(null);
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setVisible(true);
     }
+    public void disposeFrame(){
+        dispose();
+    } // dispose the frame
 }
