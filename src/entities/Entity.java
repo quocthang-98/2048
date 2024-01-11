@@ -1,7 +1,7 @@
 package entities;
 
 public abstract class Entity {
-    
+
     protected int HP;
     protected boolean isAlive;
 
@@ -13,7 +13,7 @@ public abstract class Entity {
     public int getHP () {
         return this.HP;
     }
-    
+
     public void setAliveStatus (boolean b) {
         this.isAlive = b;
     }
