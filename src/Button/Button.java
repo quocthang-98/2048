@@ -1,25 +1,15 @@
 package Button;
 
 import main.Game;
-import main.GamePanel;
-import main.GameThread;
-import main.GameWindow;
+
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
 
-import static com.sun.java.accessibility.util.AWTEventMonitor.addMouseListener;
-import static java.lang.System.exit;
 
 
 public class Button extends JFrame implements ActionListener {
-    private int BUTTON_WIDTH = 40;
-    private int BUTTON_HEIGHT = 40;
     private JButton tryAgainButton;
     private JButton exitButton;
 
@@ -43,13 +33,17 @@ public class Button extends JFrame implements ActionListener {
     }
     public void actionPerformed(ActionEvent e){
         if (e.getSource() == tryAgainButton){
-            Game.mainFrame.disposeFrame();
+            Game.getframe().disposeFrame();
             dispose();
             Game.setInstanceNull();
             Game.getInstance();
         } else {
-            Game.mainFrame.disposeFrame();
-            dispose();
+            try{
+            Game.getframe().disposeFrame();
+            dispose();}
+            catch(Exception er){
+                er.printStackTrace();
+            }
         }
     }
 

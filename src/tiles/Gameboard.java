@@ -8,6 +8,7 @@ import java.util.Random;
 import javax.imageio.ImageIO;
 
 import Button.Button;
+import ExperienceBar.ExperienceBar;
 import abilities.*;
 
 import java.awt.Font;
@@ -17,7 +18,7 @@ import main.GamePanel;
 import inputs.Direction;
 
 public class Gameboard {
-    
+
     public static final int ROWS = 4;
     public static final int COLS = 4;
 
@@ -163,7 +164,7 @@ public class Gameboard {
             Tile tile = board[row][col];
             if (tile == null) {
                 int value = random.nextInt(10);
-                if (value < 9) {
+                if (value <= 9) {
                     value = 2;
                 }
                 else value = 4;
@@ -398,6 +399,7 @@ public class Gameboard {
     // move a tile
     public boolean move (int row, int col, int horDir, int verDir, Direction dir) {
         boolean canMove = false;
+        int temp_exp = 0; // create a temp variable to save the received exp
 
         Tile current = board[row][col];     // fetch the cell data
         if (current == null) {              // if there is no tile here
@@ -427,8 +429,10 @@ public class Gameboard {
                 board[newRow][newCol].setNewPos(new Destination(newRow, newCol));
                 board[newRow][newCol].setCombiningAnimation(true);
 
-                // score += board[newRow][newCol].getValue();
-                score++;
+                 temp_exp += board[newRow][newCol].getValue(); // calculate the received exp
+                ExperienceBar.setExp(temp_exp);
+
+                score++;// calculate the score of game
                 if (score >= highScore) {
                     highScore = score;
                 }
@@ -502,7 +506,7 @@ public class Gameboard {
         g.fillRect(0, 0, SCORE_HUD_WIDTH, SCORE_HUD_HEIGHT);
 
         g.setColor(abilitiesBoxColor);
-        g.fillRoundRect(abBoxPosX, abBoxPosY, abBoxWidth, abBoxHeight, Tile.ARC_WIDTH, Tile.ARC_HEIGHT);
+       // g.fillRoundRect(abBoxPosX, abBoxPosY, abBoxWidth, abBoxHeight, Tile.ARC_WIDTH, Tile.ARC_HEIGHT);
         
         // write scores
         g.setColor(Color.DARK_GRAY);
@@ -515,18 +519,28 @@ public class Gameboard {
         // update & draw abilities graphics
 
         updateAbilitiesGraphics();
-        renderAbilitiesGraphics(g);
 
+
+        // main part for turn on/off skills
+        renderAbilitiesGraphics(g);
+        //////////////////
+
+        // turn on/off cooldown of each skill
         // cooldown clocks
-        if (player_ab1.timeCount > 0) {
-            g.setColor(Color.WHITE);
-            g.setFont(COOLDOWN_FONT);
-            int drawX = ab1IconPosX + ((ab1IconPosX)
-                            - DrawUtilz.getMessageWidth("" + player_ab1.timeCount, COOLDOWN_FONT, g)) / 2 + ABILITIES_ICON_SIZE / 12;
-            int drawY = ab1IconPosY + ABILITIES_ICON_SIZE / 2 + 12;
-            g.drawString("" + player_ab1.timeCount, drawX, drawY);
+        // Skill 1
+        if (ExperienceBar.getLevel() >1) {
+            if (player_ab1.timeCount > 0) {
+                g.setColor(Color.WHITE);
+                g.setFont(COOLDOWN_FONT);
+                int drawX = ab1IconPosX + ((ab1IconPosX)
+                        - DrawUtilz.getMessageWidth("" + player_ab1.timeCount, COOLDOWN_FONT, g)) / 2 + ABILITIES_ICON_SIZE / 12;
+                int drawY = ab1IconPosY + ABILITIES_ICON_SIZE / 2 + 12;
+                g.drawString("" + player_ab1.timeCount, drawX, drawY);
+            }
         }
-    
+////////////////////
+        //Skill 2
+        if (ExperienceBar.getLevel() >2){
         if (player_ab2.timeCount > 0) {
             g.setColor(Color.WHITE);
             g.setFont(COOLDOWN_FONT);
@@ -535,7 +549,8 @@ public class Gameboard {
             int drawY = ab2IconPosY + ABILITIES_ICON_SIZE / 2 + 12;
             g.drawString("" + player_ab2.timeCount, drawX, drawY);
         }
-
+        }
+/////////////////////
         g.dispose();
     }
 
@@ -545,20 +560,27 @@ public class Gameboard {
     }
 
     public void renderAbilitiesGraphics(Graphics2D g) {
-
+        if (ExperienceBar.getLevel() >1){
+        // render skill 1
         if (player_ab1.isReady) {
             g.drawImage(ability1Image_on, ab1IconPosX, ab1IconPosY,  null);
         }
         else {
-           g.drawImage(ability1Image_off, ab1IconPosX, ab1IconPosY, null);  
+           g.drawImage(ability1Image_off, ab1IconPosX, ab1IconPosY, null);
 
         }
+        }
 
+/////////////
+        if (ExperienceBar.getLevel() >2){
+        //render skill 2
         if (player_ab2.isReady) {
             g.drawImage(ability2Image_on, ab2IconPosX, ab2IconPosY,  null);
         }
         else {
             g.drawImage(ability2Image_off, ab2IconPosX, ab2IconPosY,  null);
         }
+        /////////////
+    }
     }
 }

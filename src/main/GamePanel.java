@@ -3,14 +3,12 @@ package main;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
+import ExperienceBar.ExperienceBar;
 import inputs.KeyboardInputs;
 import threads.*;
 import tiles.Gameboard;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Graphics2D;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.FileInputStream;
 
@@ -23,13 +21,16 @@ public class GamePanel extends JPanel {
     public static Font font = new Font("Helvetica Neue", Font.BOLD,28);
     public static Color bgColor = Color.WHITE;
 
-    public Dimension panelSize;
+    private Dimension panelSize;
+    private ExperienceBar experienceBar;
 
-    KeyboardInputs keyboardInputs;
+    private KeyboardInputs keyboardInputs;
 
     private Gameboard gBoard;
     private int drawX = WIDTH / 2 - Gameboard.BOARD_WIDTH / 2;
+    //the value of x to set up initial point for drawing the game board
     private int drawY = HEIGHT - Gameboard.BOARD_HEIGHT - 150;
+    //the value of y to set up initial point for drawing the game board
 
     private BufferedImage image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
 
@@ -61,21 +62,22 @@ public class GamePanel extends JPanel {
     
     public GamePanel() {
 
-        panelSize = new Dimension(WIDTH, HEIGHT);
-        
-        this.setLayout(null);
-        this.setPreferredSize(panelSize);
-        this.setBackground(Color.BLACK);
+        panelSize = new Dimension(WIDTH, HEIGHT); // save the size of panel
+        this.setPreferredSize(panelSize);// load the size into this panel
+        this.setBackground(Color.white);
         this.setDoubleBuffered(true);
-        this.setFocusable(true);
+        // set up the panel to draw on unvisible buffer
+        // in order to enable the panel to display more smoothly
+        this.setFocusable(true);// allow this panel to receive the button from keyboard
 
         keyboardInputs = new KeyboardInputs(this);
-        addKeyListener(keyboardInputs);
+        addKeyListener(keyboardInputs);// set up the spot to receive the button from keyboard
+
 
         ab1Thread = new Ability1Thread(this);
         ab2Thread = new Ability2Thread(this);
 
-        try {
+        try { // save images of 4 arrows indicating the moving directions
             up_arrow_on = ImageIO.read(new FileInputStream("resources/img/up_arrow_on.png"));
             up_arrow_off = ImageIO.read(new FileInputStream("resources/img/up_arrow_off.png"));
             down_arrow_on = ImageIO.read(new FileInputStream("resources/img/down_arrow_on.png"));
@@ -90,7 +92,8 @@ public class GamePanel extends JPanel {
         }
 
         gBoard = new Gameboard(drawX, drawY);
-        this.gameState = GameState.PLAY;
+        gameState = GameState.PLAY;
+//        experienceBar = new ExperienceBar(this);
 
     }
 
@@ -99,7 +102,7 @@ public class GamePanel extends JPanel {
     }
 
     public void setGameState (GameState s) {
-        this.gameState = s;
+        gameState = s;
     }
 
     public int getDrawX() {
@@ -130,6 +133,7 @@ public class GamePanel extends JPanel {
 
 
     public void drawFrame() {
+
         // generate a Graphics2D object to work with the background
         Graphics2D g = (Graphics2D) image.getGraphics();
 
@@ -163,10 +167,11 @@ public class GamePanel extends JPanel {
 
         // finish drawing the background object
         g.dispose();
-
+//
         Graphics2D g2 = (Graphics2D) this.getGraphics();
-        g2.drawImage(image, 0, 0, null);
-
+        g2.drawImage(image, 0, 40, null);
+        g2.setColor(Gameboard.scoreHUDColor);
+        g2.fillRect(0,0,205,40);
         g2.dispose();
 
     }

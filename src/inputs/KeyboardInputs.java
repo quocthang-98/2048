@@ -12,9 +12,17 @@ public class KeyboardInputs implements KeyListener {
 
     private int keysUsing = 11;
 
-    private boolean[] keyState = new boolean[256];
-    private boolean[] prevState = new boolean[256];
-
+    private boolean[] keyState = new boolean[100];
+    private boolean[] prevState = new boolean[100];
+    // VK_A:65
+    //VK_W:87
+    //VK_S:83
+    //VK_D:68
+    // VK_UP:38
+    //VK_DOWN:40
+    //VK_LEFT: 37
+    // VK_RIGHT:39
+    // set up the array length about 100
     private GamePanel gPanel;
 
     public KeyboardInputs (GamePanel gp) {
@@ -109,10 +117,10 @@ public class KeyboardInputs implements KeyListener {
 
         else if (gPanel.gameState == GameState.PAUSE) {
 
-            
+
             if (typed(KeyEvent.VK_ESCAPE)) {
                 gPanel.setGameState(GameState.PLAY);
-                
+
                 gPanel.getAb1Thread().startTimer();
                 gPanel.getAb2Thread().startTimer();
 
@@ -122,6 +130,7 @@ public class KeyboardInputs implements KeyListener {
 
     public boolean typed (int e) {
         return keyState[e] && !prevState[e];
-    }   
-    
+    }
+    // true + true -> true
+    // ortherwise, false
 }
