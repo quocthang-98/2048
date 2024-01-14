@@ -13,6 +13,7 @@ import entities.Player;
 import inputs.KeyboardInputs;
 import threads.*;
 import tiles.Gameboard;
+import threads.GameThread;
 
 import java.awt.Color;
 import java.awt.Dimension;
