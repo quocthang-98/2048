@@ -19,7 +19,6 @@ public class Ability2Thread extends AbilityThread {
 
         setDuration();
         if (gp.gameState == GameState.PLAY) {
-            System.out.println(duration);
             countDown();
         }
         else if (gp.gameState == GameState.PAUSE) {

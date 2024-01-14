@@ -1,32 +1,37 @@
 package tiles;
 
+import static constants.AnimationConstants.MoveConstants.ATTACK;
+import static constants.AnimationConstants.MoveConstants.BEING_HIT;
+
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.FileInputStream;
 import java.util.Random;
 import javax.imageio.ImageIO;
-import javax.swing.*;
-
-import Button.Button;
-import ExperienceBar.ExperienceBar;
-import abilities.*;
-
 import java.awt.Font;
 
+import abilities.*;
+
 import data.DataManager;
-import gui.GameOverScreen;
 import main.GamePanel;
+import main.GameState;
+import threads.EnemyThread;
 import inputs.Direction;
 
 public class Gameboard {
-
+    
     public static final int ROWS = 4;
     public static final int COLS = 4;
 
     private final int startingTilesCount = 2;
     private Tile[][] board;
-    private static GameOverScreen gameOverScreen;
+    private AbilityUndoStack st;
+
+    private int boardPosX;
+    private int boardPosY;
+
+    private GamePanel gPanel;
 
     private BufferedImage gameBoardImage;
     private BufferedImage hudImage;
@@ -36,9 +41,13 @@ public class Gameboard {
     private BufferedImage ability1Image_off;
     private BufferedImage ability2Image_on;
     private BufferedImage ability2Image_off;
+    private BufferedImage ability3Image_on;
+    private BufferedImage ability3Image_off;
 
-    private int boardPosX;
-    private int boardPosY;
+    private BufferedImage attack_btn;
+    private BufferedImage attack_btn_off;
+    private BufferedImage atk_tile_icon;
+    private BufferedImage heal_tile_icon;
 
     // define some size values for the interface
     public static final int SPACING = 10;
@@ -53,63 +62,94 @@ public class Gameboard {
     public static final int SCORE_Y = SCORE_HUD_HEIGHT / 2;
     public static final int HSCORE_X = SCORE_X;
     public static final int HSCORE_Y = SCORE_Y + SCORE_Y / 2;
-
+    
     public static Color boardBGColor = new Color (0xbdba8f);
-    public static Color slotBGColor = new Color(0xd4d1ab);
+    public static Color slotBGColor = new Color(0xccc897); 
+    public static Color cornerSlotBGColor = new Color(208, 209, 192, 100);
     public static Color hudColor = new Color(0xe0d5ab);
     public static Color scoreHUDColor = new Color(0xfcf3cf);
     public static Color outlineColor = new Color (0x0c0c0c);
     public static Color abilitiesBoxColor = new Color (0xc1b894);
 
-    private final int ABILITIES_ICON_SIZE = 80;
+    public final int ABILITIES_ICON_SIZE = 80;
+    public final int ATTACK_ICON_SIZE = 196;
     private final Font COOLDOWN_FONT = new Font("Helvetica Neue", Font.BOLD, 32);
     private int ab1IconPosX = HUD_WIDTH / 3;
     private int ab1IconPosY = HUD_HEIGHT / 3;
     private int ab2IconPosX = ab1IconPosX;
     private int ab2IconPosY = ab1IconPosY + ABILITIES_ICON_SIZE + SPACING;
+    private int ab3IconPosX = ab2IconPosX;
+    private int ab3IconPosY = ab2IconPosY + ABILITIES_ICON_SIZE + SPACING;
 
     // MANAGE THE COOLDOWN OF EACH ABILITY
-    private final int ABILITIES_COUNT = 2;
+    private PlayerBasicAttack playerAttack;
+
+    private final int ABILITIES_COUNT = 3;
     private PlayerAbility1 player_ab1;
     private PlayerAbility2 player_ab2;
+    private PlayerAbility3 player_ab3;
 
-    private int abBoxPosX = ab1IconPosX - SPACING;
-    private int abBoxPosY = ab1IconPosY - SPACING;
-    private int abBoxWidth = ab1IconPosX + SPACING * 3;
-    private int abBoxHeight = SPACING * 3 + ABILITIES_ICON_SIZE * ABILITIES_COUNT;
+    public int abBoxPosX = ab1IconPosX - SPACING;
+    public int abBoxPosY = ab1IconPosY - SPACING;
+    public int abBoxWidth = ab1IconPosX + SPACING * 3;
+    public int abBoxHeight = SPACING * (ABILITIES_COUNT + 1) + ABILITIES_ICON_SIZE * ABILITIES_COUNT;
+    
+    public int atkIconX = GamePanel.WIDTH - GamePanel.WIDTH / 4;
+    public int atkIconY = Gameboard.BOARD_HEIGHT - Gameboard.BOARD_HEIGHT / 6;
 
-    public final long AB1_COOLDOWN = 5;
-    public final long AB2_COOLDOWN = 10;
+    private int MAX_COMBINATION = 25;
+    private int combinationCount;
+    private boolean attackIsReady = false;
+
+    public final int AB1_COOLDOWN = 15;
+    public final int AB2_COOLDOWN = 10;
+    public final int AB3_COOLDOWN = 15;
 
     // SCORE & HIGHEST SCORE
     private int score = 0;
     private int highScore = 0;
 
-    public boolean won = false;
-    public boolean lost = false;
+    public final int ULTIMATE_VALUE = 2048;
+
+    public static boolean won = false;
+    public static boolean lost = false;
+    public static boolean found2048Tile = false;
 
     private DataManager dataManager; // for saving & loading high score
 
-    public Gameboard (int x, int y) {
+    public Gameboard (int x, int y, GamePanel gp) {
 
         dataManager = new DataManager(this);
 
         this.boardPosX = x;
         this.boardPosY = y;
+        this.gPanel = gp;
 
         board = new Tile[ROWS][COLS];
-        player_ab1 = new PlayerAbility1(this, board, AB1_COOLDOWN);
-        player_ab2 = new PlayerAbility2(this, board, AB2_COOLDOWN);
+        st = new AbilityUndoStack(board);
+        playerAttack = new PlayerBasicAttack(this, board, 0, 1);
+        player_ab1 = new PlayerAbility1(this, board, AB1_COOLDOWN, 1);
+        player_ab2 = new PlayerAbility2(this, board, AB2_COOLDOWN, 1);
+        player_ab3 = new PlayerAbility3(this, board, AB3_COOLDOWN, 1, st);
+
+        combinationCount = 0;
 
         gameBoardImage = new BufferedImage(BOARD_WIDTH, BOARD_HEIGHT, BufferedImage.TYPE_INT_RGB);
         hudImage = new BufferedImage(HUD_WIDTH, HUD_HEIGHT, BufferedImage.TYPE_INT_RGB);
         finalBoardImage = new BufferedImage(BOARD_WIDTH, BOARD_HEIGHT, BufferedImage.TYPE_INT_RGB);
-
+        
         try {
             ability1Image_on = ImageIO.read(new FileInputStream("resources/img/ab1_on.png"));
             ability1Image_off = ImageIO.read(new FileInputStream("resources/img/ab1_off.png"));
             ability2Image_on = ImageIO.read(new FileInputStream("resources/img/ab2_on.png"));
             ability2Image_off = ImageIO.read(new FileInputStream("resources/img/ab2_off.png"));
+            ability3Image_on = ImageIO.read(new FileInputStream("resources/img/ab3_on.png"));
+            ability3Image_off = ImageIO.read(new FileInputStream("resources/img/ab3_off.png"));
+            attack_btn = ImageIO.read(new FileInputStream("resources/img/atk_button2.png"));
+            attack_btn_off = ImageIO.read(new FileInputStream("resources/img/atk_button2_off.png"));
+            atk_tile_icon = ImageIO.read(new FileInputStream("resources/img/atk_tile.png"));
+            heal_tile_icon = ImageIO.read(new FileInputStream("resources/img/heal_tile.png"));
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -117,6 +157,18 @@ public class Gameboard {
         dataManager.loadHighScore();
         drawGameboard();
         start();
+    }
+
+    public GamePanel getGamePanel() {
+        return this.gPanel;
+    }
+   
+    public void updateBoardState() {
+        st.addState(board);
+    }
+
+    public void clearBoardStateStack() {
+        st.clearAll();
     }
 
     // GAME DATA HANDLING
@@ -136,14 +188,84 @@ public class Gameboard {
         this.highScore = highScore;
     }
 
+    public int getMAX_COMBINATION() {
+        return MAX_COMBINATION;
+    }
+
+    public void setMAX_COMBINATION(int mAX_COMBINATION) {
+        MAX_COMBINATION = mAX_COMBINATION;
+    }
+
+    public int getCombinationCount() {
+        return combinationCount;
+    }
+
+    public void setCombinationCount(int combinationCount) {
+        this.combinationCount = combinationCount;
+    }
+
+    public boolean attackIsReadyCheck() {
+        return attackIsReady;
+    }
+
+    public void setAttackIsReady(boolean attackIsReady) {
+        this.attackIsReady = attackIsReady;
+    }
+
+    public void updateCombinationCount(int value) {
+        if (combinationCount + value > MAX_COMBINATION) return;
+        
+        combinationCount += value;
+    }
+
+    public void increaseMaxCombination (int value) {
+        MAX_COMBINATION += value;
+    }
+
     // Ability objects
-    public Ability getAbility1() {
+    public PlayerAbility1 getAbility1() {
         return player_ab1;
     }
 
-    public Ability getAbility2() {
+    public PlayerAbility2 getAbility2() {
         return player_ab2;
     }
+
+    public PlayerAbility3 getAbility3() {
+        return player_ab3;
+    }
+    public PlayerBasicAttack getPlayerBasicAttack() {
+        return playerAttack;
+    }
+
+    public boolean abilityUnlocked(Ability a) {
+        if (gPanel.getLevel() >= a.levelRequired)
+            return true;
+        else
+            return false;
+    }
+
+    
+    public void unlockAbility (Ability ab, int key) {
+
+        switch (key) {
+            case 1:
+                player_ab1.timeCount = 3;
+                player_ab1.isReady = false;
+                break;
+            case 2:
+                player_ab2.timeCount = 3;
+                player_ab2.isReady = false;
+                break;
+            case 3:
+                player_ab3.timeCount = 3;
+                player_ab3.isReady = false;
+                break;
+            default:
+                break;
+        }
+    }
+
 
     // GAME MECHANIC
     // spawn 2 random tiles when starting a new game
@@ -151,9 +273,9 @@ public class Gameboard {
         for (int i = 0; i < startingTilesCount; i++) {
             spawnRandomTile();
         }
-    }
 
-    public static int randTime = 0;
+        updateBoardState();
+    }
 
     // spawn a randomly (90% of 2 and 10% of 4)
     public void spawnRandomTile() {
@@ -167,19 +289,16 @@ public class Gameboard {
             Tile tile = board[row][col];
             if (tile == null) {
                 int value = random.nextInt(10);
-                if (value <= 9) {
+                if (value < 9) {
                     value = 2;
                 }
                 else value = 4;
-                Tile newRandom = new Tile(value, getTileDrawX(col), getTileDrawY(row));
+                Tile newRandom = new Tile(value, row, col, getTileDrawX(col), getTileDrawY(row), this);
                 board[row][col] = newRandom;
                 break;
             }
         }
-        randTime++;
     }
-    /// input: number of calls
-    // output: 1 value at each call
 
     public int getTileDrawX(int col) {
         return SPACING + (SPACING + Tile.TILE_WIDTH) * col;
@@ -190,7 +309,7 @@ public class Gameboard {
     }
 
     public void drawGameboard() {
-
+        
         Graphics2D g = (Graphics2D) gameBoardImage.getGraphics();
         // draw the background for the board (let it match the panel's color)
         g.setColor(GamePanel.bgColor);
@@ -201,15 +320,31 @@ public class Gameboard {
         g.fillRoundRect(0, 0, BOARD_WIDTH, BOARD_HEIGHT, 20, 20);
 
         // draw the board's slots
-        g.setColor(slotBGColor);
         for (int i = 0; i < ROWS; i++) {
             for (int j = 0; j < COLS; j++) {
-                int drawX = SPACING + (SPACING + Tile.TILE_WIDTH) * j;
-                int drawY = SPACING + (SPACING + Tile.TILE_HEIGHT) * i;
-                g.fillRoundRect(drawX, drawY, Tile.TILE_WIDTH, Tile.TILE_HEIGHT, Tile.ARC_WIDTH, Tile.ARC_HEIGHT);
+                if (checkAttackingTile(i, j)) {
+                    g.setColor(cornerSlotBGColor);
+                    int drawX = SPACING + (SPACING + Tile.TILE_WIDTH) * j;
+                    int drawY = SPACING + (SPACING + Tile.TILE_HEIGHT) * i;
+                    g.drawImage(atk_tile_icon, drawX, drawY, null);
+                    g.fillRoundRect(drawX, drawY, Tile.TILE_WIDTH, Tile.TILE_HEIGHT, Tile.ARC_WIDTH, Tile.ARC_HEIGHT);
+                }
+                else if (checkHealingTile(i, j)) {
+                    g.setColor(cornerSlotBGColor);
+                    int drawX = SPACING + (SPACING + Tile.TILE_WIDTH) * j;
+                    int drawY = SPACING + (SPACING + Tile.TILE_HEIGHT) * i;
+                    g.drawImage(heal_tile_icon, drawX, drawY, null);
+                    g.fillRoundRect(drawX, drawY, Tile.TILE_WIDTH, Tile.TILE_HEIGHT, Tile.ARC_WIDTH, Tile.ARC_HEIGHT);
+                }
+                else {
+                    g.setColor(slotBGColor);
+                    int drawX = SPACING + (SPACING + Tile.TILE_WIDTH) * j;
+                    int drawY = SPACING + (SPACING + Tile.TILE_HEIGHT) * i;
+                    g.fillRoundRect(drawX, drawY, Tile.TILE_WIDTH, Tile.TILE_HEIGHT, Tile.ARC_WIDTH, Tile.ARC_HEIGHT);
+                }
             }
         }
-
+        
         g.dispose();
     }
 
@@ -222,24 +357,181 @@ public class Gameboard {
                 if (current == null) {
                     continue;
                 }
-                current.update();                   // decide the animation for the number tile
-                resetPosition(current, row, col);   // load the position of the number tile (slide animation)
-                if (current.getValue() == 2048) {   // found a 2048 piece, win the game
-                    won = true;
+                current.updateImage();
+                current.updateAnimation();                               // decide the animation for the number tile
+                resetPosition(current, row, col);
+
+                if (current.getValue() == ULTIMATE_VALUE) {
+                    gPanel.pauseAllAbilitiesTimer();
+                    Tile.TILE_SPEED = Tile.DEFAULT_TILE_SPEED / 20;
+                    found2048Tile = true;
+                    gPanel.setGameState(GameState.SLOW_MOTION);
+
                 }
             }
         }
+
+        if (boardIsFull()) {
+            gPanel.setGameState(GameState.SLOW_MOTION);
+            EnemyThread.resetIdleCharge();
+        }
+        
+
+        if (boardIsEmpty()) {
+            gPanel.setGameState(GameState.PLAY);
+            this.clearBoardStateStack();
+            start();
+        }
     }
+
+    public void update2048Attack () {
+        if (found2048Tile == false) {
+            return;
+        }
+        gPanel.setGameState(GameState.PLAY);
+
+        gPanel.damageEnemy(GamePanel.ENEMY_STARTING_HP);
+
+        // restart with a new board
+        Tile.TILE_SPEED = Tile.DEFAULT_TILE_SPEED;
+
+        this.clearAllTiles();
+
+        gPanel.startAllAbilitiesTimer();
+        found2048Tile = false;
+
+        gPanel.setPlayerAnimation(ATTACK);
+        gPanel.setEnemyAnimation(BEING_HIT);
+    }
+
+    public void updateFullBoardAttack() {
+
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < COLS; col++) {
+                Tile current = board[row][col];
+                if (current == null) continue;
+
+                current.setVanishingAnimation(true);
+            }
+        }
+        gPanel.setGameState(GameState.PLAY);
+        gPanel.damagePlayer(GamePanel.PLAYER_STARTING_HP, true);
+        
+    }
+
+    public boolean boardIsEmpty() {
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < COLS; col++) {
+                if (board[row][col] != null) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public void clearAllTiles () {
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < COLS; col++) {
+                board[row][col] = null;
+            }
+        }
+    }
+
+    public int sumAllTiles() {
+        int totalSum = 0;
+
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < COLS; col++) {
+                if (board[row][col] == null) {
+                    continue;
+                }
+                totalSum += board[row][col].getValue();
+            }
+        }
+        return totalSum;
+    }
+
+    public int sumAllLargeTiles() {
+        int totalSum = 0;
+
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < COLS; col++) {
+                if (board[row][col] == null) {
+                    continue;
+                }
+                if (board[row][col].getValue() >= 8)
+                    totalSum += board[row][col].getValue();
+            }
+        }
+        return totalSum;
+    }
+
+    public Tile findLargestTile() {
+        int maxValue = 2;
+        Tile maxTile = null;
+
+        for (int row = 0; row < Gameboard.ROWS; row++) {
+            for (int col = 0; col < Gameboard.COLS; col++) {
+                Tile current = board[row][col];
+                if (current == null) continue;
+                if (current.getValue() >= maxValue) {
+                    maxTile = board[row][col];
+                }            
+            }
+        }
+
+        return maxTile;
+    }
+
+    public static boolean checkAttackingTile(int row, int col) {
+        int sumRowCol = row + col;
+
+        switch (sumRowCol) {
+            case 0:
+            case ((Gameboard.ROWS - 1) * 2):
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    public static boolean checkHealingTile(int row, int col) {
+        int sumRowCol = row + col;
+
+        switch (sumRowCol) {
+            case (Gameboard.ROWS - 1):
+                if (row != 0 && col != 0) {
+                    return false;
+                }
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    public void updateRemoval () {
+        for (int row = 0; row < Gameboard.ROWS; row++) {
+            for (int col = 0; col < Gameboard.COLS; col++) {
+                Tile current = board[row][col];
+                if (current == null) continue;
+                if (current.isVanished()) {
+                    board[row][col] = null;
+                }            
+            }
+        }
+    }
+
 
     // calculate the postion of the tile.
     // This is for the animation purpose.
     // (a tile can slide frame-by-frame until it reaches its final destination)
     private void resetPosition(Tile current, int row, int col) {
 
-        if (current == null) return;        // if this is an empty slot, perform no animation (do nothing)
+        if (current == null) return;          // if this is an empty slot, perform no animation (do nothing)
 
-        int x = getTileDrawX(col);          // get the drawing position (x coordinate)
-        int y = getTileDrawY(row);          // get the drawing position (y coordinate)
+        int x = getTileDrawX(col);                  // get the drawing position (x coordinate)
+        int y = getTileDrawY(row);                  // get the drawing position (y coordinate)
 
         int distX = current.getX() - x;
         int distY = current.getY() - y;
@@ -263,14 +555,12 @@ public class Gameboard {
         if (distY > 0) { // down
             current.setY(current.getY() - Tile.TILE_SPEED);
         }
-
     }
 
     // this is used to move the tiles, based on the player's direction instruction
-    // input -> 1 direction -> 1 action
     public void moveTiles(Direction dir) {
 
-        // this define if at least 1 cell has moved
+        // this define if at least 1 cell has moved 
         // (if no single cell moved, that means the player has lost)
         boolean canMove = false;
 
@@ -287,7 +577,7 @@ public class Gameboard {
                     }
                     else {                                          // if canMove has been set to true by other moved previous cells
                         move(row, col, xDir, yDir, dir);            // just simply move this cell
-                        // this moving mechanic is the same for other 3 directions
+                                                                    // this moving mechanic is the same for other 3 directions
                     }
                 }
             }
@@ -341,8 +631,6 @@ public class Gameboard {
         else {
             canMove = false; // this "else" case is actually unnecessary
         }
-        //
-
 
         for (int row = 0; row < ROWS; row++) {
             for (int col = 0; col < COLS; col++) {
@@ -356,42 +644,29 @@ public class Gameboard {
 
         if (canMove) {          // if at least 1 tile has moved
             spawnRandomTile();  // spawn another tile
-            checkLoss();        // check if the player has lost the game
-
+            
             // if lost here
             if (lost) {
-                Button button = new Button();
+                
             }
         }
     }
-    private void displayGameOverScreen() {
-        SwingUtilities.invokeLater(() -> {
-            gameOverScreen = new GameOverScreen("You Lose");
 
-        });
-    }
-    public static GameOverScreen getGameOverScreen(){
-        return gameOverScreen;
-    }
     // check if the player has lost the game
-    public void checkLoss() {
+    public boolean boardIsFull() {
         for (int row = 0; row < ROWS; row++) {
             for (int col = 0; col < COLS; col++) {
                 if (board[row][col] == null)                        // if there is still an empty cell,
-                    return;                                         // the game continues
+                    return false;                                         // the game continues
                 if (checkSurrounding(row, col, board[row][col])) {  // if there is still an empty slot next to this number tile,
-                    return;                                         // the game continues
+                    return false;                                         // the game continues
                 }
             }
         }
 
-        lost = true;
-        displayGameOverScreen();// if reaches this point, the game ends
+        return true;
     }
-    // input: number of calls
-    // output: true/false -> variable 'lost'
-    // function: check whether the gameboard is full or not
-    // complexity:
+
     public boolean checkSurrounding (int row, int col, Tile tile) {
         if (row > 0) {  // check the tile above
             Tile check = board[row - 1][col];
@@ -415,22 +690,16 @@ public class Gameboard {
         }
         return false;
     }
-    // one algorithm
-    // input: the value of x, y of tile
-    // output: true/false
-    // function: check whether other tiles are located around current tile
 
     // move a tile
     public boolean move (int row, int col, int horDir, int verDir, Direction dir) {
-        boolean canMove = false;// ensure that if the tile which is at the boundary of the board does not move, other folowing tiles in the same row will not move
-        int temp_exp = 0; // create a temp variable to save the received exp
+        boolean canMove = false;
 
         Tile current = board[row][col];     // fetch the cell data
         if (current == null) {              // if there is no tile here
             return false;                   // don't move
         }
 
-        // ensure that the current tile is not null and can move
         boolean move = true;
         int newRow = row;
         int newCol = col;
@@ -454,10 +723,10 @@ public class Gameboard {
                 board[newRow][newCol].setNewPos(new Destination(newRow, newCol));
                 board[newRow][newCol].setCombiningAnimation(true);
 
-                temp_exp += board[newRow][newCol].getValue(); // calculate the received exp
-                ExperienceBar.setExp(temp_exp);
+                this.combinationCount++;
+                gPanel.setEXP(gPanel.getEXP() + 1);
 
-                score++;// calculate the score of game
+                score += board[newRow][newCol].getValue();
                 if (score >= highScore) {
                     highScore = score;
                 }
@@ -475,25 +744,19 @@ public class Gameboard {
     // if the cell want to go outside the board's area, this method will return false.
     public boolean isOutOfBound(Direction dir, int row, int col) {
         if (dir == Direction.LEFT) {
-            return (col < 0); // check whether the tile is at the left bound spot
-            // return true if  the tile is at the left bound spot
+            return col < 0;
         }
         else if (dir == Direction.RIGHT) {
-            return (col > COLS - 1);// check whether the tile is at the left bound spot
-        } //return true if the tile is at the right bound spot
+            return col > COLS - 1;
+        }
         else if (dir == Direction.DOWN) {
-            return (row > ROWS - 1);//check whether the tile is at the bottom spot
-        } // return true if the tile is at the bottom bound spot
+            return row > ROWS - 1;
+        }
         else if (dir == Direction.UP) {
-            return (row < 0); // check whether the tile is at the left bound spot
-        }// return true if the tile is at the top bound spot
-        return false; // if the tile is in the middle spot, the return value is false
+            return row < 0;
+        }
+        return false;
     }
-    // one algorithm
-    // input: the next value of x, y  of tile
-    // output: true/false
-    // function: check whether the tile is going to go outside the board
-
 
     // render the board frame-by-frame
     public void renderBoard(Graphics2D g) {
@@ -501,15 +764,15 @@ public class Gameboard {
         Graphics2D g2 = (Graphics2D) finalBoardImage.getGraphics();
 
         // draw the gameBoardImage on the finalBoardImage graphics
-        g2.drawImage(gameBoardImage, 0, 0, null);
+        g2.drawImage(gameBoardImage, 0, 0, null);          
 
         // draw the number tiles
         for (int i = 0; i < ROWS; i++) {
             for (int j = 0; j < COLS; j++) {
                 Tile tile = board[i][j];
-                if (tile == null)       // if this tile is empty,
-                    continue;           // skip
-                tile.drawTile(g2);      // else, draw
+                if (tile == null)        // if this tile is empty or if it is the maxTile,
+                    continue;                               // skip
+                tile.drawTile(g2);
             }
         }
 
@@ -519,9 +782,15 @@ public class Gameboard {
         g.drawImage(finalBoardImage, boardPosX, boardPosY, null);
 
         // render the HUD
-        this.renderHUD();
+        this.renderHUD(); 
         g.drawImage(hudImage, 0, 0, null);
 
+        if (attackIsReady) {
+            g.drawImage(attack_btn, atkIconX, atkIconY, null);
+        }
+        else {
+            g.drawImage(attack_btn_off, atkIconX, atkIconY, null);
+        }
         g.dispose();
     }
 
@@ -533,85 +802,109 @@ public class Gameboard {
         g.setColor(hudColor);
         g.fillRect(0, 0, HUD_WIDTH, HUD_HEIGHT);
 
+
         g.setColor(scoreHUDColor);
         g.fillRect(0, 0, SCORE_HUD_WIDTH, SCORE_HUD_HEIGHT);
 
         g.setColor(abilitiesBoxColor);
-        // g.fillRoundRect(abBoxPosX, abBoxPosY, abBoxWidth, abBoxHeight, Tile.ARC_WIDTH, Tile.ARC_HEIGHT);
-
+        g.fillRoundRect(abBoxPosX, abBoxPosY, abBoxWidth, abBoxHeight, Tile.ARC_WIDTH, Tile.ARC_HEIGHT);
+        
         // write scores
+        printScore(g);
+
+        // update & draw abilities graphics
+
+        updateAbilitiesGraphics();
+        renderAbilitiesGraphics(g);
+
+        // cooldown clocks
+        drawAbility1Cooldown(g);
+        drawAbility2Cooldown(g);
+        drawAbility3Cooldown(g);
+
+        g.dispose();
+    }
+
+    private void printScore(Graphics2D g) {
         g.setColor(Color.DARK_GRAY);
         g.setFont(new Font("Helvetica Neue", Font.BOLD,28));
         g.drawString("Score: " + score, SCORE_X, SCORE_Y);
         g.setFont(new Font("Helvetica Neue", Font.BOLD,20));
         g.setColor(Color.GRAY);
         g.drawString("Best: " + highScore, HSCORE_X, HSCORE_Y);
+    }
 
-        // update & draw abilities graphics
-
-        updateAbilitiesGraphics();
-
-
-        // main part for turn on/off skills
-        renderAbilitiesGraphics(g);
-        //////////////////
-
-        // turn on/off cooldown of each skill
-        // cooldown clocks
-        // Skill 1
-        if (ExperienceBar.getLevel() >1) {
+    private void drawAbility1Cooldown (Graphics2D g) {
+        if (gPanel.getLevel() >= player_ab1.levelRequired) {
             if (player_ab1.timeCount > 0) {
                 g.setColor(Color.WHITE);
                 g.setFont(COOLDOWN_FONT);
                 int drawX = ab1IconPosX + ((ab1IconPosX)
-                        - DrawUtilz.getMessageWidth("" + player_ab1.timeCount, COOLDOWN_FONT, g)) / 2 + ABILITIES_ICON_SIZE / 12;
+                                - DrawUtilz.getMessageWidth("" + player_ab1.timeCount, COOLDOWN_FONT, g)) / 2 + ABILITIES_ICON_SIZE / 12;
                 int drawY = ab1IconPosY + ABILITIES_ICON_SIZE / 2 + 12;
                 g.drawString("" + player_ab1.timeCount, drawX, drawY);
             }
         }
-////////////////////
-        //Skill 2
-        if (ExperienceBar.getLevel() >2){
+    }
+
+    private void drawAbility2Cooldown (Graphics2D g) {
+        if (gPanel.getLevel() >= player_ab2.levelRequired) {
             if (player_ab2.timeCount > 0) {
                 g.setColor(Color.WHITE);
                 g.setFont(COOLDOWN_FONT);
                 int drawX = ab2IconPosX + ((ab2IconPosX)
-                        - DrawUtilz.getMessageWidth("" + player_ab2.timeCount, COOLDOWN_FONT, g)) / 2 + ABILITIES_ICON_SIZE / 12;
+                                - DrawUtilz.getMessageWidth("" + player_ab2.timeCount, COOLDOWN_FONT, g)) / 2 + ABILITIES_ICON_SIZE / 12;
                 int drawY = ab2IconPosY + ABILITIES_ICON_SIZE / 2 + 12;
                 g.drawString("" + player_ab2.timeCount, drawX, drawY);
             }
         }
-/////////////////////
-        g.dispose();
     }
 
+    private void drawAbility3Cooldown (Graphics2D g) {
+        if (gPanel.getLevel() >= player_ab3.levelRequired) {
+            if (player_ab3.timeCount > 0) {
+                g.setColor(Color.WHITE);
+                g.setFont(COOLDOWN_FONT);
+                int drawX = ab3IconPosX + ((ab3IconPosX)
+                                - DrawUtilz.getMessageWidth("" + player_ab3.timeCount, COOLDOWN_FONT, g)) / 2 + ABILITIES_ICON_SIZE / 12;
+                int drawY = ab3IconPosY + ABILITIES_ICON_SIZE / 2 + 12;
+                g.drawString("" + player_ab3.timeCount, drawX, drawY);
+            }
+        }
+    }
 
     public void updateAbilitiesGraphics() {
         //
     }
 
     public void renderAbilitiesGraphics(Graphics2D g) {
-        if (ExperienceBar.getLevel() >1){
-            // render skill 1
+
+        if (gPanel.getLevel() >= player_ab1.levelRequired) {
             if (player_ab1.isReady) {
                 g.drawImage(ability1Image_on, ab1IconPosX, ab1IconPosY,  null);
             }
             else {
-                g.drawImage(ability1Image_off, ab1IconPosX, ab1IconPosY, null);
+            g.drawImage(ability1Image_off, ab1IconPosX, ab1IconPosY, null);  
 
             }
         }
 
-/////////////
-        if (ExperienceBar.getLevel() >2){
-            //render skill 2
+        if (gPanel.getLevel() >= player_ab2.levelRequired) {
             if (player_ab2.isReady) {
                 g.drawImage(ability2Image_on, ab2IconPosX, ab2IconPosY,  null);
             }
             else {
                 g.drawImage(ability2Image_off, ab2IconPosX, ab2IconPosY,  null);
             }
-            /////////////
+        }
+
+        if (gPanel.getLevel() >= player_ab3.levelRequired) {
+            if (player_ab3.isReady) {
+                g.drawImage(ability3Image_on, ab3IconPosX, ab3IconPosY,  null);
+            }
+            else {
+                g.drawImage(ability3Image_off, ab3IconPosX, ab3IconPosY,  null);
+            }
         }
     }
 }

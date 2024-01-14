@@ -1,42 +1,37 @@
 package threads;
 
-import ExperienceBar.ExperienceBar;
 import main.GamePanel;
-import main.GameWindow;
-
-
 
 public class GameThread implements Runnable {
-
-    private ExperienceBar experienceBar;
-    private GameWindow frame;
-
+    
     private Thread gameThread;
-    private final int FPS = 60;
+    private static final int FPS = 60;
     private GamePanel gamePanel;
 
-    public GameThread (GamePanel gamePanel, GameWindow frame) {
+    public GameThread (GamePanel gamePanel) {
         this.gamePanel = gamePanel;
-        this.frame = frame;
+
         gameThread = new Thread(this);
-        experienceBar = new ExperienceBar(gamePanel,frame);
         gameThread.start();
     }
 
+    @Override
     public void run() {
 
         double drawInterval = 1000000000 / FPS;
         double nextInterval = System.nanoTime() + drawInterval;
 
-        int frame1 = 0;
+        int frame = 0;
         long lastFrameCheck = System.currentTimeMillis();
 
-        while (true) {
+        while (gameThread != null) {
 
             gamePanel.update();
             gamePanel.drawFrame();
             gamePanel.getAb1Thread().cooldownUpdate();
             gamePanel.getAb2Thread().cooldownUpdate();
+            gamePanel.getAb3Thread().cooldownUpdate();
+
             try {
                 double remainingTime = nextInterval - System.nanoTime();
                 remainingTime = remainingTime / 1000000;
@@ -46,23 +41,24 @@ public class GameThread implements Runnable {
                 }
 
                 Thread.sleep((long) remainingTime);
-
                 nextInterval += drawInterval;
-                frame1++;
+                frame++;
 
                 if (System.currentTimeMillis() - lastFrameCheck >= 1000) {
                     lastFrameCheck = System.currentTimeMillis();
-                    System.out.println("FPS: " + frame1);
-                    frame1 = 0;
+                    System.out.println("FPS: " + frame);
+                    frame = 0;
                 }
 
-            } catch(InterruptedException e){
+            }
+            catch (InterruptedException e) {
                 e.printStackTrace();
             }
-
         }
     }
-    public int getFPS () {
+
+
+    public static int getFPS () {
         return FPS;
     }
 }

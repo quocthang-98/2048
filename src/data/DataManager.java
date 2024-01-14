@@ -11,7 +11,7 @@ import tiles.Gameboard;
 import java.io.File;
 
 public class DataManager {
-
+    
     private String filePath = "./savefile.txt";
 
     private Gameboard gb;
@@ -36,14 +36,14 @@ public class DataManager {
     }
 
     public void loadHighScore () {
-
+        
         try {
             File f = new File(filePath);
-
+            
             if (!f.exists()) {
                 this.createSaveFile();
             }
-
+            
             FileReader fileReader = new FileReader(f);
             BufferedReader bReader = new BufferedReader(fileReader);
 
@@ -66,7 +66,7 @@ public class DataManager {
             File f = new File(filePath);
             FileWriter fileWriter = new FileWriter(f);
             BufferedWriter bWriter = new BufferedWriter(fileWriter);
-
+            
             bWriter.write("" + gb.getHighScore());
 
             bWriter.close();

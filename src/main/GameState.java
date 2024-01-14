@@ -3,5 +3,8 @@ package main;
 public enum GameState {
     
     PLAY,
-    PAUSE
+    SLOW_MOTION,
+    PAUSE,
+    WON,
+    LOST
 }

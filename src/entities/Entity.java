@@ -1,7 +1,7 @@
 package entities;
 
 public abstract class Entity {
-
+    
     protected int HP;
     protected boolean isAlive;
 
@@ -14,16 +14,24 @@ public abstract class Entity {
         return this.HP;
     }
 
+    public void setHP(int value) {
+        HP = value;
+    }
+    
     public void setAliveStatus (boolean b) {
         this.isAlive = b;
     }
 
-    public boolean getAliveStatus () {
-        return isAlive;
+    public boolean isAlive () {
+        return HP > 0;
     }
 
     public void receiveDamage (int dmg) {
         this.HP -= dmg;
+    }
+
+    public void heal(int amount) {
+        this.HP += amount;
     }
 
     // abstract methods

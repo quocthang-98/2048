@@ -1,24 +1,25 @@
 package main;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JFrame;
+import java.awt.Image;
+import java.awt.Toolkit;
 
 public class GameWindow extends JFrame {
-
-    // create a main frame to insert the main panel into
+    
     public GameWindow(GamePanel gamePanel) {
 
-        setTitle("2048");
-        setResizable(false);
-        add(gamePanel);
-        pack();
-        setBackground(Color.WHITE);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setVisible(true);
+        Image iconImg = Toolkit.getDefaultToolkit().getImage("resources/img/icon.png");
 
+        this.setTitle("2048: ULTIMATE");
+
+        this.setIconImage(iconImg);
+        this.setResizable(false);
+        this.add(gamePanel);
+
+        this.pack();
+
+        this.setLocationRelativeTo(null);
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setVisible(true);
     }
-    public void disposeFrame(){
-        dispose();
-    } // dispose the frame
 }

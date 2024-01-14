@@ -1,28 +1,23 @@
 package inputs;
 
+import static constants.AnimationConstants.MoveConstants.*;
+
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
 import main.GamePanel;
 import main.GameState;
-
+import threads.EnemyThread;
 import tiles.Gameboard;
+
 
 public class KeyboardInputs implements KeyListener {
 
-    private int keysUsing = 11;
+    private int keysUsing = 13;
 
-    private boolean[] keyState = new boolean[100];
-    private boolean[] prevState = new boolean[100];
-    // VK_A:65
-    //VK_W:87
-    //VK_S:83
-    //VK_D:68
-    // VK_UP:38
-    //VK_DOWN:40
-    //VK_LEFT: 37
-    // VK_RIGHT:39
-    // set up the array length about 100
+    private boolean[] keyState = new boolean[256];
+    private boolean[] prevState = new boolean[256];
+
     private GamePanel gPanel;
 
     public KeyboardInputs (GamePanel gp) {
@@ -49,9 +44,11 @@ public class KeyboardInputs implements KeyListener {
             if (i == 8) prevState[KeyEvent.VK_ESCAPE] = keyState[KeyEvent.VK_ESCAPE];
             if (i == 9) prevState[KeyEvent.VK_Q] = keyState[KeyEvent.VK_Q];
             if (i == 10) prevState[KeyEvent.VK_E] = keyState[KeyEvent.VK_E];
+            if (i == 11) prevState[KeyEvent.VK_F] = keyState[KeyEvent.VK_F];
+            if (i == 12) prevState[KeyEvent.VK_SPACE] = keyState[KeyEvent.VK_SPACE];
         }
     }
-
+    
     @Override
     public void keyTyped(KeyEvent e) {
         e.consume();
@@ -71,66 +68,135 @@ public class KeyboardInputs implements KeyListener {
 
         if (gPanel.gameState == GameState.PLAY) {
             if (typed(KeyEvent.VK_W) || typed(KeyEvent.VK_UP)) {
-                gPanel.setGoingUp(true);
                 gameboard.moveTiles(Direction.UP);
+                gameboard.updateBoardState();
+
+                gPanel.getEnemyObject().setAggressive(false);
+                EnemyThread.resetIdleCharge();
             }
             if (typed(KeyEvent.VK_S) || typed(KeyEvent.VK_DOWN)) {
-                gPanel.setGoingDown(true);
                 gameboard.moveTiles(Direction.DOWN);
+                gameboard.updateBoardState();
+
+                gPanel.getEnemyObject().setAggressive(false);
+                EnemyThread.resetIdleCharge();
+
             }
             if (typed(KeyEvent.VK_A) || typed(KeyEvent.VK_LEFT)) {
-                gPanel.setGoingLeft(true);
                 gameboard.moveTiles(Direction.LEFT);
+                gameboard.updateBoardState();
+
+                gPanel.getEnemyObject().setAggressive(false);
+                EnemyThread.resetIdleCharge();
+
             }
             if (typed(KeyEvent.VK_D) || typed(KeyEvent.VK_RIGHT)) {
-                gPanel.setGoingRight(true);
                 gameboard.moveTiles(Direction.RIGHT);
+                gameboard.updateBoardState();
+
+                gPanel.getEnemyObject().setAggressive(false);
+                EnemyThread.resetIdleCharge();
+
             }
-            if (typed(KeyEvent.VK_Q)) {
+
+            if (typed(KeyEvent.VK_SPACE)) {
+                if (gameboard.attackIsReadyCheck()) {
+
+                    gameboard.getPlayerBasicAttack().castAbility();
+                    gameboard.updateBoardState();
+
+                    gameboard.setAttackIsReady(false);
+                    gameboard.increaseMaxCombination(25);
+                    gameboard.setCombinationCount(0);
+
+                    gPanel.setPlayerAnimation(ATTACK);
+                    gPanel.setEnemyAnimation(BEING_HIT);
+
+                    gPanel.getEnemyObject().setAggressive(false);
+                    EnemyThread.resetIdleCharge();
+                }
+
+                
+            }
+
+            if (typed(KeyEvent.VK_1)) {
                 if (gameboard.getAbility1().isReady) {
 
                     gameboard.getAbility1().isReady = false;
                     gameboard.getAbility1().castAbility();
+                    gameboard.updateBoardState();
 
-                    gPanel.getAb1Thread().resetDuration();
-                    gPanel.getAb1Thread().startTimer();
+                    gPanel.setPlayerAnimation(USING_ABILITY);
+                    gPanel.getAb1Thread().resetCooldown();
+
+                    gPanel.getEnemyObject().setAggressive(false);
+                    EnemyThread.resetIdleCharge();
+
+
                 }
             }
-            if (typed(KeyEvent.VK_E)) {
+            if (typed(KeyEvent.VK_2)) {
                 if (gameboard.getAbility2().isReady) {
 
                     gameboard.getAbility2().isReady = false;
                     gameboard.getAbility2().castAbility();
+                    gameboard.updateBoardState();
 
-                    gPanel.getAb2Thread().resetDuration();
-                    gPanel.getAb2Thread().startTimer();
+                    gPanel.setPlayerAnimation(USING_ABILITY);
+                    gPanel.getAb2Thread().resetCooldown();
+
+                    gPanel.getEnemyObject().setAggressive(false);
+                    EnemyThread.resetIdleCharge();
+
                 }
             }
+
+            if (typed(KeyEvent.VK_3)) {
+                if (gameboard.getAbility3().isReady) {
+
+                    gameboard.getAbility3().isReady = false;
+                    gameboard.getAbility3().castAbility();
+                    gameboard.updateBoardState();
+
+                    gPanel.setPlayerAnimation(USING_ABILITY);
+                    gPanel.getAb3Thread().resetCooldown();
+
+                    gPanel.getEnemyObject().setAggressive(false);
+                    EnemyThread.resetIdleCharge();
+                }
+            }
+
 
             if (typed(KeyEvent.VK_ESCAPE)) {
                 gPanel.setGameState(GameState.PAUSE);
 
-                gPanel.getAb1Thread().pauseTimer();
-                gPanel.getAb2Thread().pauseTimer();
+                gPanel.pauseAllAbilitiesTimer();
             }
         }
 
         else if (gPanel.gameState == GameState.PAUSE) {
-
-
+            
             if (typed(KeyEvent.VK_ESCAPE)) {
                 gPanel.setGameState(GameState.PLAY);
-
-                gPanel.getAb1Thread().startTimer();
-                gPanel.getAb2Thread().startTimer();
-
+                
+                gPanel.startAllAbilitiesTimer();
             }
         }
+
+        this.updatePrevKeys();
     }
 
     public boolean typed (int e) {
         return keyState[e] && !prevState[e];
     }
-    // true + true -> true
-    // ortherwise, false
+    
+    public boolean noKeyInput() {
+        for (int i = 0; i < keyState.length; i++) {
+            if (typed(i) == true) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
 }

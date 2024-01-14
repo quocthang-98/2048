@@ -1,7 +1,7 @@
 package threads;
 
 public abstract class AbilityThread {
-
+    
     protected boolean isRunning;
     protected long duration, prevDuration, startTime;
 
@@ -31,6 +31,11 @@ public abstract class AbilityThread {
         if (isRunning) {
             duration = System.currentTimeMillis() - startTime + prevDuration;
         }
+    }
+
+    public void resetCooldown () {
+        this.resetDuration();
+        this.startTimer();
     }
 
     public abstract void cooldownUpdate();

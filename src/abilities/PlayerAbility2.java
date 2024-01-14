@@ -5,8 +5,8 @@ import tiles.Tile;
 
 public class PlayerAbility2 extends Ability{
 
-    public PlayerAbility2 (Gameboard gb, Tile[][] board, long cd) {
-        super(gb, board, cd);
+    public PlayerAbility2 (Gameboard gb, Tile[][] board, long cd, int levelRequired) {
+        super(gb, board, cd, levelRequired);
     }
 
     @Override
@@ -20,10 +20,8 @@ public class PlayerAbility2 extends Ability{
                 }
                 if (current.getValue() == 2) {
                     current.setVanishingAnimation(true);
-                    board[row][col] = null;
-                }
+                }           
             }
-        }
-
+        }  
     }
 }
