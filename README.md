@@ -7,39 +7,47 @@ _Note: The game is still in early stages of development, and it is not the compl
 This documentation provides all essential information about this repository: a remake of the original 2048 game created for the university's Data Structures & Algorithms course.<br>
 Some parts of the code refer to the **2048 Tutorial Series** by Scott Bass (old name: FatalCubez), which can be found [here](https://youtube.com/playlist?list=PLig6-gM-fHMGH6jmCpsxW6YbagHgCS3Jd&si=DOV_Fjm_q7aKs9-4).
 
+![gameplay_screenshot1](resources/screenshots/v0.1.0_gameplay-img1.png)
+
+---
+
 ## 2. Installation & Setup
 Installation
 
+---
+
 ## 3. How to Play
 
+---
+
 ## 4. Features
+
+---
 
 ## 5. Licenses
 This repository does not have an open-source license.  
 Without explicit permission, you **cannot** copy, modify, or distribute this project.  
 If you’re interested in using it, please contact me at **phanquocthangabc@gmail.com**
 
+---
+
 ## 6. Credits
-The original 2048 game made by **Gabriele Cirulli**.
+<div align="center">
 
----</>---
+**Original game by Gabriele Cirulli**
+<br>
 
-**Project Manager:**
+**Project Manager**
 
 Duong Minh Tuan
 
----</>---
-
-**Game Designers:**
+**Game Designers**
 
 Phan Quoc Thang
 
 Duong Minh Tuan
 
----</>---
-
-
-**Programmers:**
+**Programmers**
 
 Phan Quoc Thang
 
@@ -47,27 +55,21 @@ Duong Minh Tuan
 
 TrunggTruong
 
-
----</>---
-
-
-**User Interface Developers:**
+**User Interface Developers**
 
 Duong Minh Tuan
 
 TrunggTruong
 
----</>---
-
-**Arts:**
+**Arts**
 
 Phan Quoc Thang
 
----</>---
-
-**Animations:**
+**Animations**
 
 Phan Quoc Thang
 
----</>---
+<br>
 
+_Special thanks to Mr. Tung & Mr. Nghia for their unwavering support and guidance throughout our DSA course._
+</div>
