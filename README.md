@@ -1,6 +1,7 @@
-# **2048: ULTIMATE**
+# **2048: ULTIMATE** (2023)
+
 ## 1. Repository Introduction
-![Build](https://img.shields.io/badge/build-v0.1.0-brightgreen)
+![Build](https://img.shields.io/badge/build-v0.1.0--alpha-brightgreen)
 
 _Note: The game is still in early stages of development, and it is not the complete representation of the final product._
 
