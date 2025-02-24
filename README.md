@@ -1,6 +1,13 @@
-## Getting Started
+# **2048: ULTIMATE**
+## Repo Introduction
+![Build](https://img.shields.io/badge/build-v0.1.0-brightgreen)
 
-Welcome to the VS Code Java world. Here is a guideline to help you get started to write Java code in Visual Studio Code.
+_Note: The game is still in early stages of development, and it is not the complete representation of the final product._
+
+This documentation provides all essential information about this repository: a remake of the original 2048 game created for the university's Data Structures & Algorithms course.<br>
+Some parts of the code refer to the **2048 Tutorial Series** by Scott Bass (old name: FatalCubez), which can be found [here](https://youtube.com/playlist?list=PLig6-gM-fHMGH6jmCpsxW6YbagHgCS3Jd&si=DOV_Fjm_q7aKs9-4).
+
+
 
 ## Folder Structure
 
